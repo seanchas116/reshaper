@@ -11,7 +11,8 @@ module.exports = function ({ types: t }) {
       JSXOpeningElement(path, state) {
         // Check if the element already has a "data-location" attribute
         const hasDataLocation = path.node.attributes.some(
-          (attr) => t.isJSXAttribute(attr) && attr.name.name === "data-location"
+          (attr) =>
+            t.isJSXAttribute(attr) && attr.name.name === "data-reshaper-loc"
         );
 
         if (!hasDataLocation) {
@@ -23,7 +24,7 @@ module.exports = function ({ types: t }) {
 
           // Create the "data-location" attribute
           const dataLocationAttr = t.jsxAttribute(
-            t.jsxIdentifier("data-location"),
+            t.jsxIdentifier("data-reshaper-loc"),
             t.stringLiteral(`${filePath}#${line}:${column}`)
           );
 
