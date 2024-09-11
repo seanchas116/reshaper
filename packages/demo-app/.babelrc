@@ -1,11 +1,4 @@
 {
   "presets": ["next/babel"],
-  "plugins": [
-    [
-      "@locator/babel-jsx/dist",
-      {
-        "env": "development"
-      }
-    ]
-  ]
+  "plugins": ["./babel-plugin.js"]
 }
