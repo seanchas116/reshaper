@@ -1,16 +1,67 @@
-use swc_core::ecma::{
-    ast::Program,
-    transforms::testing::test_inline,
-    visit::{as_folder, FoldWith, VisitMut},
+use swc_core::common::BytePos;
+use swc_core::common::SourceMapper;
+use swc_core::ecma::ast::{
+    Ident, JSXAttr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue, JSXElement, Lit, Str,
 };
-use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
+use swc_core::ecma::transforms::testing::{test, test_inline};
+use swc_core::ecma::visit::VisitMutWith;
+use swc_core::plugin::plugin_transform;
+use swc_core::plugin::proxies::{PluginSourceMapProxy, TransformPluginProgramMetadata};
+use swc_core::{
+    common::Spanned,
+    ecma::{
+        ast::Program,
+        visit::{as_folder, FoldWith, VisitMut},
+    },
+};
+use swc_ecma_parser::{Syntax, TsConfig};
 
-pub struct TransformVisitor;
+pub struct TransformVisitor {
+    source_map: PluginSourceMapProxy,
+    start_pos: BytePos,
+}
+
+impl TransformVisitor {
+    fn new(source_map: PluginSourceMapProxy) -> Self {
+        TransformVisitor {
+            source_map,
+            start_pos: BytePos(0),
+        }
+    }
+}
 
 impl VisitMut for TransformVisitor {
-    // Implement necessary visit_mut_* methods for actual custom transform.
-    // A comprehensive list of possible visitor methods can be found here:
-    // https://rustdoc.swc.rs/swc_ecma_visit/trait.VisitMut.html
+    fn visit_mut_program(&mut self, n: &mut Program) {
+        self.start_pos = n.span().lo;
+        n.visit_mut_children_with(self);
+    }
+
+    fn visit_mut_jsx_element(&mut self, jsx: &mut JSXElement) {
+        let mut opening = jsx.opening.clone();
+        let start = opening.span.lo.0 - self.start_pos.0;
+
+        let linecol = self.source_map.lookup_char_pos(BytePos(start));
+        println!("linecol: {:?}", linecol);
+
+        let loc = format!("{}:{}:{}", "file", linecol.line, linecol.col.0);
+
+        opening.attrs.push(JSXAttrOrSpread::JSXAttr(JSXAttr {
+            span: opening.span,
+            name: JSXAttrName::Ident(Ident::new("data-reshaper-loc".into(), opening.span)),
+            value: Some(JSXAttrValue::Lit(Lit::Str(
+                Str {
+                    span: opening.span,
+                    value: loc.clone().into(),
+                    raw: None,
+                }
+                .into(),
+            ))),
+        }));
+
+        jsx.opening = opening;
+
+        jsx.visit_mut_children_with(self);
+    }
 }
 
 /// An example plugin function with macro support.
@@ -29,20 +80,39 @@ impl VisitMut for TransformVisitor {
 /// This requires manual handling of serialization / deserialization from ptrs.
 /// Refer swc_plugin_macro to see how does it work internally.
 #[plugin_transform]
-pub fn process_transform(program: Program, _metadata: TransformPluginProgramMetadata) -> Program {
-    program.fold_with(&mut as_folder(TransformVisitor))
+pub fn process_transform(program: Program, metadata: TransformPluginProgramMetadata) -> Program {
+    // let src = metadata.source_map.source_file.get().src.clone();
+    // let line_col_mapping = LineColMapping::new(src);
+    program.fold_with(&mut as_folder(TransformVisitor::new(metadata.source_map)))
 }
 
 // An example to test plugin transform.
 // Recommended strategy to test plugin's transform is verify
 // the Visitor's behavior, instead of trying to run `process_transform` with mocks
 // unless explicitly required to do so.
-test_inline!(
-    Default::default(),
-    |_| as_folder(TransformVisitor),
-    boo,
-    // Input codes
-    r#"console.log("transform");"#,
-    // Output codes after transformed with plugin
-    r#"console.log("transform");"#
-);
+
+// TODO: load source from file instead of hardcoding it.
+// test_inline!(
+//     Syntax::Typescript(TsConfig {
+//         tsx: true,
+//         ..Default::default()
+//     }),
+//     |_| {
+//         as_folder(TransformVisitor::new(LineColMapping::new(
+//             r#"const x = <div>
+//   <h1>Hello</h1>
+// </div>;"#,
+//         )))
+//     },
+//     boo,
+//     // Input codes
+//     r#"const x = <div>
+//   <h1>Hello</h1>
+// </div>;"#,
+//     // Output codes after transformed with plugin
+//     r#"const x = <div data-reshaper-loc="file:1:10">
+//   <h1 data-reshaper-loc="file:2:2">Hello</h1>
+// </div>;"#
+// );
+
+// TODO: test with JavaScript SWC API (where source map is available)
