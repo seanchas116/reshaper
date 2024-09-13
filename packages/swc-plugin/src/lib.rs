@@ -1,49 +1,41 @@
-use swc_core::common::BytePos;
+use swc_core::common::FileName::Real;
 use swc_core::common::SourceMapper;
 use swc_core::ecma::ast::{
     Ident, JSXAttr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue, JSXElement, Lit, Str,
 };
 use swc_core::ecma::transforms::testing::{test, test_inline};
 use swc_core::ecma::visit::VisitMutWith;
+use swc_core::ecma::{
+    ast::Program,
+    visit::{as_folder, FoldWith, VisitMut},
+};
 use swc_core::plugin::plugin_transform;
 use swc_core::plugin::proxies::{PluginSourceMapProxy, TransformPluginProgramMetadata};
-use swc_core::{
-    common::Spanned,
-    ecma::{
-        ast::Program,
-        visit::{as_folder, FoldWith, VisitMut},
-    },
-};
 use swc_ecma_parser::{Syntax, TsConfig};
 
 pub struct TransformVisitor {
     source_map: PluginSourceMapProxy,
-    start_pos: BytePos,
-}
-
-impl TransformVisitor {
-    fn new(source_map: PluginSourceMapProxy) -> Self {
-        TransformVisitor {
-            source_map,
-            start_pos: BytePos(0),
-        }
-    }
 }
 
 impl VisitMut for TransformVisitor {
-    fn visit_mut_program(&mut self, n: &mut Program) {
-        self.start_pos = n.span().lo;
-        n.visit_mut_children_with(self);
-    }
-
     fn visit_mut_jsx_element(&mut self, jsx: &mut JSXElement) {
         let mut opening = jsx.opening.clone();
-        let start = opening.span.lo.0 - self.start_pos.0;
 
-        let linecol = self.source_map.lookup_char_pos(BytePos(start));
-        println!("linecol: {:?}", linecol);
+        let pos = self.source_map.lookup_char_pos(opening.span.lo);
+        let name_str = match pos.file.name.clone() {
+            Real(path) => {
+                let p = path.as_path();
+                p.to_str().map(|s| s.to_string())
+            }
+            _ => None,
+        };
 
-        let loc = format!("{}:{}:{}", "file", linecol.line, linecol.col.0);
+        let loc = format!(
+            "{}:{}:{}",
+            name_str.unwrap_or("".to_string()),
+            pos.line,
+            pos.col.0
+        );
 
         opening.attrs.push(JSXAttrOrSpread::JSXAttr(JSXAttr {
             span: opening.span,
@@ -83,7 +75,9 @@ impl VisitMut for TransformVisitor {
 pub fn process_transform(program: Program, metadata: TransformPluginProgramMetadata) -> Program {
     // let src = metadata.source_map.source_file.get().src.clone();
     // let line_col_mapping = LineColMapping::new(src);
-    program.fold_with(&mut as_folder(TransformVisitor::new(metadata.source_map)))
+    program.fold_with(&mut as_folder(TransformVisitor {
+        source_map: metadata.source_map,
+    }))
 }
 
 // An example to test plugin transform.
