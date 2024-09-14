@@ -34,7 +34,8 @@ const Page = () => {
 
               const location = elem?.getAttribute("data-reshaper-loc");
               if (location) {
-                console.log(location);
+                const [filePath, line, col] = location.split(":");
+                console.log(filePath, line, col);
               }
             }}
           />
