@@ -19,27 +19,27 @@ import Link from "next/link";
 
 export default function Portfolio() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="px-4 lg:px-6 h-14 flex items-center">
+    <div className="flex min-h-screen flex-col">
+      <header className="flex h-14 items-center px-4 lg:px-6">
         <Link className="flex items-center justify-center" href="#">
           <CodeIcon className="h-6 w-6" />
           <span className="sr-only">React Developer</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Link
-            className="text-sm font-medium hover:underline underline-offset-4"
+            className="text-sm font-medium underline-offset-4 hover:underline"
             href="#projects"
           >
             Projects
           </Link>
           <Link
-            className="text-sm font-medium hover:underline underline-offset-4"
+            className="text-sm font-medium underline-offset-4 hover:underline"
             href="#skills"
           >
             Skills
           </Link>
           <Link
-            className="text-sm font-medium hover:underline underline-offset-4"
+            className="text-sm font-medium underline-offset-4 hover:underline"
             href="#contact"
           >
             Contact
@@ -54,7 +54,7 @@ export default function Portfolio() {
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
                   Jane Doe
                 </h1>
-                <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
+                <p className="mx-auto max-w-[700px] text-gray-500 dark:text-gray-400 md:text-xl">
                   React Developer | Building beautiful and functional web
                   applications
                 </p>
@@ -72,10 +72,10 @@ export default function Portfolio() {
         </section>
         <section
           id="projects"
-          className="w-full py-12 md:py-24 lg:py-32 bg-gray-100 dark:bg-gray-800"
+          className="w-full bg-gray-100 py-12 dark:bg-gray-800 md:py-24 lg:py-32"
         >
           <div className="container px-4 md:px-6">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-8">
+            <h2 className="mb-8 text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
               Projects
             </h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -116,7 +116,7 @@ export default function Portfolio() {
         </section>
         <section id="skills" className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-8">
+            <h2 className="mb-8 text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
               Skills
             </h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -160,14 +160,14 @@ export default function Portfolio() {
         </section>
         <section
           id="contact"
-          className="w-full py-12 md:py-24 lg:py-32 bg-gray-100 dark:bg-gray-800"
+          className="w-full bg-gray-100 py-12 dark:bg-gray-800 md:py-24 lg:py-32"
         >
           <div className="container px-4 md:px-6">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-8">
+            <h2 className="mb-8 text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
               Get in Touch
             </h2>
             <div className="flex flex-col items-center space-y-4 text-center">
-              <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
+              <p className="mx-auto max-w-[700px] text-gray-500 dark:text-gray-400 md:text-xl">
                 I&apos;m always open to new opportunities and collaborations.
                 Feel free to reach out!
               </p>
@@ -203,15 +203,15 @@ export default function Portfolio() {
           </div>
         </section>
       </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+      <footer className="flex w-full shrink-0 flex-col items-center gap-2 border-t px-4 py-6 sm:flex-row md:px-6">
         <p className="text-xs text-gray-500 dark:text-gray-400">
           © 2023 Jane Doe. All rights reserved.
         </p>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-xs hover:underline underline-offset-4" href="#">
+        <nav className="flex gap-4 sm:ml-auto sm:gap-6">
+          <Link className="text-xs underline-offset-4 hover:underline" href="#">
             Terms of Service
           </Link>
-          <Link className="text-xs hover:underline underline-offset-4" href="#">
+          <Link className="text-xs underline-offset-4 hover:underline" href="#">
             Privacy
           </Link>
         </nav>

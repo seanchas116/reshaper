@@ -19,10 +19,10 @@ export class UndoManager {
               store,
               change.name,
               change.oldValue,
-              change.newValue
+              change.newValue,
             );
           }
-        })
+        }),
       );
     }
   }
@@ -69,7 +69,7 @@ export class UndoManager {
     store: Store<string, unknown>,
     id: string,
     oldData: unknown,
-    newData: unknown
+    newData: unknown,
   ) {
     if (this.duringUndoRedo) {
       return;
@@ -85,7 +85,7 @@ export class UndoManager {
     const changes = getOrCreate(
       this.lastCommand.changesForStore,
       store,
-      () => new Map<string, { oldData: unknown; newData: unknown }>()
+      () => new Map<string, { oldData: unknown; newData: unknown }>(),
     );
     const staged = changes.get(id);
     if (staged) {

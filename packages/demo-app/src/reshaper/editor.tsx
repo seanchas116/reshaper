@@ -39,7 +39,7 @@ const ASTNodeView = observer(
     return (
       <div>
         <div
-          className="mx-1 h-7 flex items-center aria-selected:bg-blue-500 aria-selected:text-white rounded"
+          className="mx-1 flex h-7 items-center rounded aria-selected:bg-blue-500 aria-selected:text-white"
           aria-selected={selected}
           style={{
             paddingLeft: depth * 8 + 8,
@@ -56,13 +56,13 @@ const ASTNodeView = observer(
         </div>
       </div>
     );
-  }
+  },
 );
 
 const ASTViewer = observer(() => {
   const editorState = useEditorState();
   return (
-    <div className="size-full flex-1 relative">
+    <div className="relative size-full flex-1">
       <div className="absolute inset-0 size-full overflow-y-scroll text-xs">
         <div className="px-3 py-2 text-gray-400">
           {path.basename(editorState.filePath)}
@@ -84,26 +84,26 @@ const Inspector = observer(() => {
   const className = node.openingElement.attributes.find(
     (attr): attr is JSXAttribute => {
       return attr.type === "JSXAttribute" && attr.name.name === "className";
-    }
+    },
   );
   const value = className?.value;
   const stringValue = value?.type === "StringLiteral" ? value.value : undefined;
 
   return (
     <div className="p-3 text-xs">
-      <div className="mb-2 flex justify-between items-center">
+      <div className="mb-2 flex items-center justify-between">
         <h2>
           {node.openingElement.name.type === "JSXIdentifier"
             ? node.openingElement.name.name
             : "Unknown"}
         </h2>
-        <div className="font-mono text-gray-400 font-[10px]">
+        <div className="font-mono font-[10px] text-gray-400">
           {path.basename(editorState.filePath)}:{node.loc?.start.line}:
           {node.loc?.start.column}
         </div>
       </div>
       <textarea
-        className="block w-full h-32 bg-gray-100 rounded p-2 text-xs font-mono"
+        className="block h-32 w-full rounded bg-gray-100 p-2 font-mono text-xs"
         value={stringValue}
         readOnly
       />
@@ -116,25 +116,25 @@ const EditorBody = observer(() => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   return (
-    <div className="grid grid-rows-[auto_1fr] w-screen h-screen fixed inset-0 text-black">
-      <div className="h-10 border-b bg-white border-gray-200 flex items-center justify-center">
-        <div className="bg-gray-100 w-[320px] rounded text-gray-500 px-3 py-1 text-sm">
+    <div className="fixed inset-0 grid h-screen w-screen grid-rows-[auto_1fr] text-black">
+      <div className="flex h-10 items-center justify-center border-b border-gray-200 bg-white">
+        <div className="w-[320px] rounded bg-gray-100 px-3 py-1 text-sm text-gray-500">
           {window.location.origin}
           {editorState.pathname}
         </div>
       </div>
       <div className="grid grid-cols-[auto_1fr_auto]">
-        <div className="w-64 bg-white border-r border-gray-200">
+        <div className="w-64 border-r border-gray-200 bg-white">
           <ASTViewer />
         </div>
-        <div className="grid p-4 bg-gray-100">
+        <div className="grid bg-gray-100 p-4">
           <div className="relative bg-white shadow">
             <iframe
               src={editorState.pathname}
-              className="absolute w-full h-full"
+              className="absolute h-full w-full"
               ref={iframeRef}
             ></iframe>
-            <div className="absolute w-full h-full">
+            <div className="absolute h-full w-full">
               {editorState.hoveredRect && (
                 <div
                   className="absolute border border-blue-500"
@@ -148,7 +148,7 @@ const EditorBody = observer(() => {
               )}
             </div>
             <div
-              className="absolute w-full h-full"
+              className="absolute h-full w-full"
               onMouseMove={action((e) => {
                 // find the element that was clicked
                 const iframe = iframeRef.current;
@@ -158,7 +158,7 @@ const EditorBody = observer(() => {
 
                 const elem = iframe.contentDocument?.elementFromPoint(
                   e.clientX - iframe.getBoundingClientRect().left,
-                  e.clientY - iframe.getBoundingClientRect().top
+                  e.clientY - iframe.getBoundingClientRect().top,
                 );
                 if (!elem) return;
 
@@ -168,7 +168,7 @@ const EditorBody = observer(() => {
                 }
 
                 editorState.hoveredRect = Rect.from(
-                  elem.getBoundingClientRect()
+                  elem.getBoundingClientRect(),
                 );
               })}
               onClick={action((e) => {
@@ -180,7 +180,7 @@ const EditorBody = observer(() => {
 
                 const elem = iframe.contentDocument?.elementFromPoint(
                   e.clientX - iframe.getBoundingClientRect().left,
-                  e.clientY - iframe.getBoundingClientRect().top
+                  e.clientY - iframe.getBoundingClientRect().top,
                 );
                 if (!elem) return;
 
@@ -195,7 +195,7 @@ const EditorBody = observer(() => {
             />
           </div>
         </div>
-        <div className="w-64 bg-white border-l border-gray-200">
+        <div className="w-64 border-l border-gray-200 bg-white">
           <Inspector />
         </div>
       </div>

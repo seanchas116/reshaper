@@ -7,7 +7,7 @@ export class Parenting<TData> {
   constructor(
     store: Store<string, TData>,
     getParent: (data: TData) => string | undefined,
-    getOrder: (data: TData) => number
+    getOrder: (data: TData) => number,
   ) {
     this.store = store;
     this.getParent = getParent;
@@ -54,7 +54,7 @@ export class Parenting<TData> {
     return getOrCreate(
       this.childrenMap,
       parent,
-      () => new FractionalSort(this.store, this.getOrder)
+      () => new FractionalSort(this.store, this.getOrder),
     );
   }
 

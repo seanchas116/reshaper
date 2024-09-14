@@ -5,7 +5,7 @@ export function getOrCreate<K, V>(
     set(key: K, value: V): void;
   },
   key: K,
-  create: () => V
+  create: () => V,
 ): V {
   let value = map.get(key);
   if (!value) {

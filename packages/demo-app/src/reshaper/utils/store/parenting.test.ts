@@ -15,7 +15,7 @@ describe(Parenting, () => {
     const parenting = new Parenting(
       store,
       (data) => data.parent,
-      (data) => data.order
+      (data) => data.order,
     );
 
     // generate example data
@@ -53,7 +53,7 @@ describe(Parenting, () => {
     const parenting = new Parenting(
       store,
       (data) => data.parent,
-      (data) => data.order
+      (data) => data.order,
     );
 
     // generate example data
@@ -66,7 +66,7 @@ describe(Parenting, () => {
       new Map([
         ["b", 0],
         ["c", 1],
-      ])
+      ]),
     );
   });
 });
