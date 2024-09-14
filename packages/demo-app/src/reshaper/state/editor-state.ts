@@ -2,33 +2,19 @@ import { createContext, useContext } from "react";
 import { loadFile } from "../actions/actions";
 import { makeObservable, observable } from "mobx";
 import { parse } from "@babel/parser";
-import { File } from "@babel/types";
 import { Rect } from "paintvec";
 import { Workspace } from "../models/workspace";
 
 export class EditorState {
   constructor() {
-    this.filePath = "";
-    this.content = "";
-    makeObservable(this, {
-      filePath: observable,
-      line: observable,
-      col: observable,
-      content: observable,
-      ast: observable.ref,
-      hoveredRect: observable.ref,
-    });
+    makeObservable(this);
   }
 
   readonly workspace = new Workspace();
 
-  filePath: string = "";
-  pathname: string = "";
-  line: number = 0;
-  col: number = 0;
-  content: string = "";
-  ast: File | undefined = undefined;
-  hoveredRect: Rect | undefined = undefined;
+  @observable filePath: string = "";
+  @observable pathname: string = "";
+  @observable.ref hoveredRect: Rect | undefined = undefined;
 
   async loadFile(filePath: string, line: number, col: number) {
     if (this.filePath !== filePath) {
@@ -41,12 +27,7 @@ export class EditorState {
       });
 
       this.workspace.loadFileAST(ast);
-
-      console.log(ast);
-      this.ast = ast;
     }
-    this.line = line;
-    this.col = col;
 
     const node = this.workspace.nodeForLocation(line, col);
     this.workspace.selectedNodeIDs.replace(node ? [node.id] : []);
