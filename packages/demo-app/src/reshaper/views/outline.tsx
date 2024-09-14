@@ -4,6 +4,7 @@ import { useEditorState } from "../state/editor-state";
 import { observer } from "mobx-react-lite";
 import path from "path-browserify";
 import { Node } from "../models/node";
+import { action } from "mobx";
 
 const ASTNodeView = observer(
   ({ node, depth }: { node: Node; depth: number }) => {
@@ -15,7 +16,7 @@ const ASTNodeView = observer(
     const nameNode = babelNode.openingElement.name;
     const name = nameNode.type === "JSXIdentifier" ? nameNode.name : "Unknown";
 
-    const selected = editorState.selectedNode === babelNode;
+    const selected = node.selected;
 
     return (
       <div>
@@ -25,6 +26,10 @@ const ASTNodeView = observer(
           style={{
             paddingLeft: depth * 8 + 8,
           }}
+          onClick={action(() => {
+            editorState.workspace.selectedNodeIDs.clear();
+            node.select();
+          })}
         >
           {name}
         </div>

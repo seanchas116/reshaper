@@ -3,9 +3,10 @@ import { InstanceManager } from "./instance-manager";
 import { Store } from "../utils/store/store";
 import { UndoManager } from "../utils/store/undo-manager";
 import { Parenting } from "../utils/store/parenting";
-import { makeObservable, observable } from "mobx";
+import { computed, makeObservable, observable } from "mobx";
 import * as babel from "@babel/types";
 import traverse from "@babel/traverse";
+import compact from "just-compact";
 
 export class Workspace {
   constructor() {
@@ -36,6 +37,12 @@ export class Workspace {
 
   @observable.ref rootNodes: Node[] = [];
 
+  @computed get selectedNodes(): Node[] {
+    return compact(
+      Array.from(this.selectedNodeIDs).map((id) => this.nodes.safeGet(id)),
+    );
+  }
+
   loadFileAST(file: babel.File) {
     this.nodeStore.data.clear();
 
@@ -60,5 +67,9 @@ export class Workspace {
     this.rootNodes = [...nodeForBabelNode.values()].filter(
       (node) => !node.parent,
     );
+  }
+
+  nodeForLocation(line: number, column: number): Node | undefined {
+    return this.nodes.safeGet(line + ":" + column);
   }
 }

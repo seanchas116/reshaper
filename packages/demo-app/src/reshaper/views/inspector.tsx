@@ -7,10 +7,13 @@ import path from "path-browserify";
 
 const NodeInspector = observer(() => {
   const editorState = useEditorState();
-  const node = editorState.selectedNode;
+  const node = editorState.workspace.selectedNodes.at(0);
   if (!node) return null;
 
-  const className = node.openingElement.attributes.find(
+  const babelNode = node.content.node;
+  if (babelNode.type !== "JSXElement") return null;
+
+  const className = babelNode.openingElement.attributes.find(
     (attr): attr is JSXAttribute => {
       return attr.type === "JSXAttribute" && attr.name.name === "className";
     },
@@ -22,13 +25,13 @@ const NodeInspector = observer(() => {
     <div className="p-3 text-xs">
       <div className="mb-2 flex items-center justify-between">
         <h2>
-          {node.openingElement.name.type === "JSXIdentifier"
-            ? node.openingElement.name.name
+          {babelNode.openingElement.name.type === "JSXIdentifier"
+            ? babelNode.openingElement.name.name
             : "Unknown"}
         </h2>
         <div className="font-mono font-[10px] text-gray-400">
-          {path.basename(editorState.filePath)}:{node.loc?.start.line}:
-          {node.loc?.start.column}
+          {path.basename(editorState.filePath)}:{babelNode.loc?.start.line}:
+          {babelNode.loc?.start.column}
         </div>
       </div>
       <textarea
