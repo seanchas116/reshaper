@@ -57,7 +57,7 @@ export class Workspace {
           {
             parent: nodeForBabelNode.get(path.parent)?.id,
             order: order++,
-            content: { type: "element", node: path.node },
+            babelNode: path.node,
           },
         );
         nodeForBabelNode.set(path.node, node);

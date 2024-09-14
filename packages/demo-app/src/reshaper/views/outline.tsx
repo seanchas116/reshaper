@@ -10,7 +10,7 @@ const ASTNodeView = observer(
   ({ node, depth }: { node: Node; depth: number }) => {
     const editorState = useEditorState();
 
-    const babelNode = node.content.node;
+    const babelNode = node.babelNode;
     if (babelNode.type !== "JSXElement") return null;
 
     const nameNode = babelNode.openingElement.name;

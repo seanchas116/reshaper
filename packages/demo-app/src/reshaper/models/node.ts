@@ -6,23 +6,8 @@ import * as babel from "@babel/types";
 export type NodeData = {
   readonly parent?: string;
   readonly order: number;
-  readonly content:
-    | {
-        readonly type: "element";
-        readonly node: babel.JSXElement;
-      }
-    | {
-        readonly type: "text";
-        readonly node: babel.JSXText;
-      }
-    | {
-        readonly type: "fragment";
-        readonly node: babel.JSXFragment;
-      }
-    | {
-        readonly type: "other";
-        readonly node: babel.Node;
-      };
+  readonly babelNode: babel.Node; // original babel node: do not edit this directly
+  readonly className?: string;
 };
 
 export class Node {
@@ -178,12 +163,15 @@ export class Node {
     }
   }
 
-  get content(): NodeData["content"] {
-    return this.data.content;
+  get babelNode(): NodeData["babelNode"] {
+    return this.data.babelNode;
   }
 
   @computed get mayHaveChildren() {
-    return this.content.type === "element" || this.content.type === "fragment";
+    return (
+      this.babelNode.type === "JSXElement" ||
+      this.babelNode.type === "JSXFragment"
+    );
   }
 
   delete() {

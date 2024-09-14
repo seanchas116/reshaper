@@ -10,7 +10,7 @@ const NodeInspector = observer(() => {
   const node = editorState.workspace.selectedNodes.at(0);
   if (!node) return null;
 
-  const babelNode = node.content.node;
+  const babelNode = node.babelNode;
   if (babelNode.type !== "JSXElement") return null;
 
   const className = babelNode.openingElement.attributes.find(
