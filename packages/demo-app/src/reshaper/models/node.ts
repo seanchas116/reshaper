@@ -1,5 +1,5 @@
 import { computed, makeObservable, observable } from "mobx";
-import { Document } from "./document";
+import { Workspace } from "./workspace";
 import { lerp } from "../utils/math";
 import * as babel from "@babel/types";
 
@@ -26,37 +26,37 @@ export type NodeData = {
 };
 
 export class Node {
-  constructor(document: Document, id: string) {
-    this.document = document;
+  constructor(workspace: Workspace, id: string) {
+    this.workspace = workspace;
     this.id = id;
     makeObservable(this);
   }
 
-  readonly document: Document;
+  readonly workspace: Workspace;
   readonly id: string;
 
   @computed get data(): NodeData {
-    return this.document.nodeStore.data.get(this.id)!;
+    return this.workspace.nodeStore.data.get(this.id)!;
   }
 
   set data(data: NodeData) {
-    this.document.nodeStore.data.set(this.id, data);
+    this.workspace.nodeStore.data.set(this.id, data);
   }
 
   @computed get children(): Node[] {
-    return this.document.nodeParenting
+    return this.workspace.nodeParenting
       .getChildren(this.id)
-      .items.map((id) => this.document.nodes.get(id));
+      .items.map((id) => this.workspace.nodes.get(id));
   }
 
   childAt(index: number): Node | undefined {
-    const id = this.document.nodeParenting.getChildren(this.id).items[index];
-    return id ? this.document.nodes.get(id) : undefined;
+    const id = this.workspace.nodeParenting.getChildren(this.id).items[index];
+    return id ? this.workspace.nodes.get(id) : undefined;
   }
 
   @computed get parent(): Node | undefined {
     const parentId = this.data.parent;
-    return parentId ? this.document.nodes.get(parentId) : undefined;
+    return parentId ? this.workspace.nodes.get(parentId) : undefined;
   }
 
   @computed get root(): Node {
@@ -95,7 +95,7 @@ export class Node {
     }
 
     return (
-      this.document.nodeParenting.getChildren(parentId).indices.get(this.id) ??
+      this.workspace.nodeParenting.getChildren(parentId).indices.get(this.id) ??
       -1
     );
   }
@@ -147,18 +147,18 @@ export class Node {
   }
 
   @computed get selected(): boolean {
-    return this.document.selectedNodeIDs.has(this.id);
+    return this.workspace.selectedNodeIDs.has(this.id);
   }
 
   select(): void {
     for (const child of this.children) {
       child.deselect();
     }
-    this.document.selectedNodeIDs.add(this.id);
+    this.workspace.selectedNodeIDs.add(this.id);
   }
 
   deselect(): void {
-    this.document.selectedNodeIDs.delete(this.id);
+    this.workspace.selectedNodeIDs.delete(this.id);
     for (const child of this.children) {
       child.deselect();
     }
@@ -191,7 +191,7 @@ export class Node {
       child.delete();
     }
 
-    this.document.selectedNodeIDs.delete(this.id);
-    this.document.nodeStore.data.delete(this.id);
+    this.workspace.selectedNodeIDs.delete(this.id);
+    this.workspace.nodeStore.data.delete(this.id);
   }
 }
