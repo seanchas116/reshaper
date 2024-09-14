@@ -5,7 +5,7 @@ import { parse } from "@babel/parser";
 import { File, JSXElement } from "@babel/types";
 import traverse from "@babel/traverse";
 import { Rect } from "paintvec";
-import { Document } from "../models/document";
+import { Workspace } from "../models/workspace";
 
 export class EditorState {
   constructor() {
@@ -22,7 +22,7 @@ export class EditorState {
     });
   }
 
-  readonly document = new Document();
+  readonly workspace = new Workspace();
 
   filePath: string = "";
   pathname: string = "";
@@ -43,7 +43,7 @@ export class EditorState {
         plugins: ["typescript", "jsx"],
       });
 
-      this.document.loadFileAST(ast);
+      this.workspace.loadFileAST(ast);
 
       console.log(ast);
       this.ast = ast;

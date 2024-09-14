@@ -14,6 +14,7 @@ const ASTNodeView = observer(
 
     const nameNode = babelNode.openingElement.name;
     const name = nameNode.type === "JSXIdentifier" ? nameNode.name : "Unknown";
+
     const selected = editorState.selectedNode === babelNode;
 
     return (
@@ -47,7 +48,7 @@ export const Outline = observer(() => {
         <div className="px-3 py-2 text-gray-400">
           {path.basename(editorState.filePath)}
         </div>
-        {editorState.document.rootNodes.map((node) => (
+        {editorState.workspace.rootNodes.map((node) => (
           <ASTNodeView key={node.id} node={node} depth={0} />
         ))}
       </div>

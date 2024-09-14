@@ -7,7 +7,7 @@ import { makeObservable, observable } from "mobx";
 import * as babel from "@babel/types";
 import traverse from "@babel/traverse";
 
-export class Document {
+export class Workspace {
   constructor() {
     this.nodeStore = new Store<string, NodeData>();
 
