@@ -1,0 +1,10 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`test > test 1`] = `
+"export var x = /*#__PURE__*/ React.createElement("div", {
+    "data-reshaper-loc": "fixture/input.js:2:2"
+}, /*#__PURE__*/ React.createElement("h1", {
+    "data-reshaper-loc": "fixture/input.js:3:4"
+}, "Hello"));
+"
+`;

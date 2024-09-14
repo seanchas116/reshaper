@@ -10,8 +10,13 @@
   "main": "target/wasm32-wasi/release/swc_plugin.wasm",
   "scripts": {
     "build": "cargo build-wasi --release",
+    "test": "npm run build && vitest",
     "prepublishOnly": "npm run build"
   },
   "files": [],
-  "preferUnplugged": true
+  "preferUnplugged": true,
+  "devDependencies": {
+    "@swc/core": "1.4.17",
+    "vitest": "^2.1.1"
+  }
 }

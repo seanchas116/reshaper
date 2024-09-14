@@ -3,7 +3,6 @@ use swc_core::common::SourceMapper;
 use swc_core::ecma::ast::{
     Ident, JSXAttr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue, JSXElement, Lit, Str,
 };
-use swc_core::ecma::transforms::testing::{test, test_inline};
 use swc_core::ecma::visit::VisitMutWith;
 use swc_core::ecma::{
     ast::Program,
@@ -11,7 +10,8 @@ use swc_core::ecma::{
 };
 use swc_core::plugin::plugin_transform;
 use swc_core::plugin::proxies::{PluginSourceMapProxy, TransformPluginProgramMetadata};
-use swc_ecma_parser::{Syntax, TsConfig};
+// use swc_core::ecma::transforms::testing::{test, test_inline};
+// use swc_ecma_parser::{Syntax, TsConfig};
 
 pub struct TransformVisitor {
     source_map: PluginSourceMapProxy,
@@ -108,5 +108,3 @@ pub fn process_transform(program: Program, metadata: TransformPluginProgramMetad
 //   <h1 data-reshaper-loc="file:2:2">Hello</h1>
 // </div>;"#
 // );
-
-// TODO: test with JavaScript SWC API (where source map is available)
