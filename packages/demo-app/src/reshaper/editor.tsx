@@ -116,7 +116,7 @@ const EditorBody = observer(() => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   return (
-    <div className="grid grid-rows-[auto_1fr] w-screen h-screen fixed inset-0">
+    <div className="grid grid-rows-[auto_1fr] w-screen h-screen fixed inset-0 text-black">
       <div className="h-10 border-b bg-white border-gray-200 flex items-center justify-center">
         <div className="bg-gray-100 w-[320px] rounded text-gray-500 px-3 py-1 text-sm">
           {window.location.origin}
