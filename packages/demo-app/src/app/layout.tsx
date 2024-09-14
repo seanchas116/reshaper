@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { EditButton } from "@/components/edit-button";
+import { EditButton } from "@/reshaper/edit-button";
 
 // const geistSans = localFont({
 //   src: "./fonts/GeistVF.woff",
