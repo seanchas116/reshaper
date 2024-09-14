@@ -33,7 +33,6 @@ export class EditorState {
   async loadFile(filePath: string, line: number, col: number) {
     if (this.filePath !== filePath) {
       const file = await loadFile(filePath);
-      console.log(file);
       this.filePath = filePath;
 
       const ast = parse(file, {
@@ -62,7 +61,6 @@ export class EditorState {
   }
 
   async revealLocation(filePath: string, line: number, col: number) {
-    console.log(filePath, line, col);
     this.loadFile(filePath, line, col);
   }
 }
