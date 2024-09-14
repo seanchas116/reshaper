@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { EditorState, EditorStateProvider, useEditorState } from "./state";
 import { observer } from "mobx-react-lite";
-import { File, JSXElement } from "@babel/types";
+import { File, JSXAttribute, JSXElement } from "@babel/types";
 import traverse from "@babel/traverse";
 import path from "path-browserify";
 
@@ -28,10 +28,7 @@ const ASTNodeView = observer(
 
     const nameNode = node.openingElement.name;
     const name = nameNode.type === "JSXIdentifier" ? nameNode.name : "Unknown";
-
-    const selected =
-      editorState.line === node.loc?.start.line &&
-      editorState.col === node.loc?.start.column;
+    const selected = editorState.selectedNode === node;
 
     return (
       <div>
@@ -69,6 +66,30 @@ const ASTViewer = observer(() => {
             <ASTNodeView key={i} node={element} depth={0} />
           ))}
       </div>
+    </div>
+  );
+});
+
+const Inspector = observer(() => {
+  const editorState = useEditorState();
+  const node = editorState.selectedNode;
+  if (!node) return null;
+
+  const className = node.openingElement.attributes.find(
+    (attr): attr is JSXAttribute => {
+      return attr.type === "JSXAttribute" && attr.name.name === "className";
+    }
+  );
+  const value = className?.value;
+  const stringValue = value?.type === "StringLiteral" ? value.value : undefined;
+
+  return (
+    <div className="p-3">
+      <textarea
+        className="block w-full h-32 bg-gray-100 rounded p-2 text-xs font-mono"
+        value={stringValue}
+        readOnly
+      />
     </div>
   );
 });
@@ -116,7 +137,9 @@ const Editor = observer(() => {
             />
           </div>
         </div>
-        <div className="w-64 bg-white border-l border-gray-200"></div>
+        <div className="w-64 bg-white border-l border-gray-200">
+          <Inspector />
+        </div>
       </div>
     </div>
   );

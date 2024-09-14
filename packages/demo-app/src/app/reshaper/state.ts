@@ -2,7 +2,8 @@ import { createContext, useContext } from "react";
 import { loadFile } from "./actions";
 import { makeObservable, observable } from "mobx";
 import { parse } from "@babel/parser";
-import { File } from "@babel/types";
+import { File, JSXElement } from "@babel/types";
+import traverse from "@babel/traverse";
 
 export class EditorState {
   constructor() {
@@ -14,6 +15,7 @@ export class EditorState {
       col: observable,
       content: observable,
       ast: observable.ref,
+      selectedNode: observable.ref,
     });
   }
 
@@ -22,6 +24,7 @@ export class EditorState {
   col: number = 0;
   content: string = "";
   ast: File | undefined = undefined;
+  selectedNode: JSXElement | undefined = undefined;
 
   async loadFile(filePath: string, line: number, col: number) {
     if (this.filePath !== filePath) {
@@ -39,6 +42,19 @@ export class EditorState {
     }
     this.line = line;
     this.col = col;
+
+    if (this.ast) {
+      traverse(this.ast, {
+        JSXElement: (path) => {
+          if (
+            path.node.loc?.start.line === line &&
+            path.node.loc?.start.column === col
+          ) {
+            this.selectedNode = path.node;
+          }
+        },
+      });
+    }
   }
 
   async revealLocation(filePath: string, line: number, col: number) {
