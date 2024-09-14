@@ -3,7 +3,9 @@ import { InstanceManager } from "./instance-manager";
 import { Store } from "../utils/store/store";
 import { UndoManager } from "../utils/store/undo-manager";
 import { Parenting } from "../utils/store/parenting";
-import { observable } from "mobx";
+import { makeObservable, observable } from "mobx";
+import * as babel from "@babel/types";
+import traverse from "@babel/traverse";
 
 export class Document {
   constructor() {
@@ -22,6 +24,8 @@ export class Document {
     );
 
     this.undoManager.clear();
+
+    makeObservable(this);
   }
 
   readonly undoManager: UndoManager;
@@ -29,4 +33,32 @@ export class Document {
   readonly nodes: InstanceManager<NodeData, Node>;
   readonly nodeParenting: Parenting<NodeData>;
   readonly selectedNodeIDs = observable.set<string>();
+
+  @observable.ref rootNodes: Node[] = [];
+
+  loadFileAST(file: babel.File) {
+    this.nodeStore.data.clear();
+
+    const nodeForBabelNode = new Map<babel.Node, Node>();
+    let order = 0;
+
+    traverse(file, {
+      JSXElement: (path) => {
+        path.parent;
+        const node = this.nodes.add(
+          path.node.loc!.start.line + ":" + path.node.loc!.start.column,
+          {
+            parent: nodeForBabelNode.get(path.parent)?.id,
+            order: order++,
+            content: { type: "element", node: path.node },
+          },
+        );
+        nodeForBabelNode.set(path.node, node);
+      },
+    });
+
+    this.rootNodes = [...nodeForBabelNode.values()].filter(
+      (node) => !node.parent,
+    );
+  }
 }

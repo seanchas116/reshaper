@@ -2,32 +2,19 @@
 
 import { useEditorState } from "../state/editor-state";
 import { observer } from "mobx-react-lite";
-import { File, JSXElement } from "@babel/types";
-import traverse from "@babel/traverse";
 import path from "path-browserify";
-
-function findJSXElements(file: File): JSXElement[] {
-  const jsxElements: JSXElement[] = [];
-
-  // Traverse the AST to find JSXElement nodes
-  traverse(file, {
-    JSXElement: (path) => {
-      if (!path.findParent((parent) => parent.isJSXElement())) {
-        jsxElements.push(path.node); // Collect root JSXElement nodes
-      }
-    },
-  });
-
-  return jsxElements;
-}
+import { Node } from "../models/node";
 
 const ASTNodeView = observer(
-  ({ node, depth }: { node: JSXElement; depth: number }) => {
+  ({ node, depth }: { node: Node; depth: number }) => {
     const editorState = useEditorState();
 
-    const nameNode = node.openingElement.name;
+    const babelNode = node.content.node;
+    if (babelNode.type !== "JSXElement") return null;
+
+    const nameNode = babelNode.openingElement.name;
     const name = nameNode.type === "JSXIdentifier" ? nameNode.name : "Unknown";
-    const selected = editorState.selectedNode === node;
+    const selected = editorState.selectedNode === babelNode;
 
     return (
       <div>
@@ -41,10 +28,10 @@ const ASTNodeView = observer(
           {name}
         </div>
         <div>
-          {node.children.map((child, i) => {
-            if (child.type === "JSXElement") {
-              return <ASTNodeView key={i} node={child} depth={depth + 1} />;
-            }
+          {node.children.map((child) => {
+            return (
+              <ASTNodeView key={child.id} node={child} depth={depth + 1} />
+            );
           })}
         </div>
       </div>
@@ -60,10 +47,9 @@ export const Outline = observer(() => {
         <div className="px-3 py-2 text-gray-400">
           {path.basename(editorState.filePath)}
         </div>
-        {editorState.ast &&
-          findJSXElements(editorState.ast).map((element, i) => (
-            <ASTNodeView key={i} node={element} depth={0} />
-          ))}
+        {editorState.document.rootNodes.map((node) => (
+          <ASTNodeView key={node.id} node={node} depth={0} />
+        ))}
       </div>
     </div>
   );
