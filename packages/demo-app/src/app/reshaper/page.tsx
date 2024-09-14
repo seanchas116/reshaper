@@ -35,10 +35,10 @@ const ASTNodeView = observer(
     return (
       <div>
         <div
-          className="h-6 flex items-center aria-selected:bg-blue-500 aria-selected:text-white"
+          className="mx-1 h-7 flex items-center aria-selected:bg-blue-500 aria-selected:text-white rounded"
           aria-selected={selected}
           style={{
-            paddingLeft: depth * 8 + 12,
+            paddingLeft: depth * 8 + 8,
           }}
         >
           {name}
@@ -60,7 +60,7 @@ const ASTViewer = observer(() => {
   return (
     <div className="size-full flex-1 relative">
       <div className="absolute inset-0 size-full overflow-y-scroll text-xs">
-        <div className="px-3 py-2 text-gray-400 font-bold">
+        <div className="px-3 py-2 text-gray-400">
           {path.basename(editorState.filePath)}
         </div>
         {editorState.ast &&
