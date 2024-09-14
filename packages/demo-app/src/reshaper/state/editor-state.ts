@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import { loadFile } from "./actions";
+import { loadFile } from "../actions/actions";
 import { makeObservable, observable } from "mobx";
 import { parse } from "@babel/parser";
 import { File, JSXElement } from "@babel/types";
