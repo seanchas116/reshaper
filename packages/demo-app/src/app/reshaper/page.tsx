@@ -39,7 +39,7 @@ const ASTNodeView = observer(
           className="h-6 flex items-center aria-selected:bg-blue-500 aria-selected:text-white"
           aria-selected={selected}
           style={{
-            paddingLeft: depth * 8 + 8,
+            paddingLeft: depth * 8 + 12,
           }}
         >
           {name}
@@ -61,7 +61,7 @@ const ASTViewer = observer(() => {
   return (
     <div className="size-full flex-1 relative">
       <div className="absolute inset-0 size-full overflow-y-scroll text-xs">
-        <div className="p-2 text-gray-500">
+        <div className="px-3 py-2 text-gray-400 font-bold">
           {path.basename(editorState.filePath)}
         </div>
         {editorState.ast &&
@@ -88,31 +88,33 @@ const Editor = observer(() => {
         <div className="w-64 bg-white border-r border-gray-200">
           <ASTViewer />
         </div>
-        <div className="relative">
-          <iframe
-            src="/"
-            className="absolute w-full h-full"
-            ref={iframeRef}
-          ></iframe>
-          <div
-            className="absolute w-full h-full"
-            onClick={(e) => {
-              // find the element that was clicked
-              const iframe = iframeRef.current;
-              if (!iframe) return;
+        <div className="grid p-4 bg-gray-100">
+          <div className="relative bg-white shadow">
+            <iframe
+              src="/"
+              className="absolute w-full h-full"
+              ref={iframeRef}
+            ></iframe>
+            <div
+              className="absolute w-full h-full"
+              onClick={(e) => {
+                // find the element that was clicked
+                const iframe = iframeRef.current;
+                if (!iframe) return;
 
-              const elem = iframe.contentDocument?.elementFromPoint(
-                e.clientX - iframe.getBoundingClientRect().left,
-                e.clientY - iframe.getBoundingClientRect().top
-              );
+                const elem = iframe.contentDocument?.elementFromPoint(
+                  e.clientX - iframe.getBoundingClientRect().left,
+                  e.clientY - iframe.getBoundingClientRect().top
+                );
 
-              const location = elem?.getAttribute("data-reshaper-loc");
-              if (location) {
-                const [filePath, line, col] = location.split(":");
-                editorState.revealLocation(filePath, +line, +col);
-              }
-            }}
-          />
+                const location = elem?.getAttribute("data-reshaper-loc");
+                if (location) {
+                  const [filePath, line, col] = location.split(":");
+                  editorState.revealLocation(filePath, +line, +col);
+                }
+              }}
+            />
+          </div>
         </div>
         <div className="w-64 bg-white border-l border-gray-200"></div>
       </div>
