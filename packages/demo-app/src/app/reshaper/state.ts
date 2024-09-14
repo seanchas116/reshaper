@@ -4,6 +4,7 @@ import { makeObservable, observable } from "mobx";
 import { parse } from "@babel/parser";
 import { File, JSXElement } from "@babel/types";
 import traverse from "@babel/traverse";
+import { Rect } from "paintvec";
 
 export class EditorState {
   constructor() {
@@ -16,6 +17,7 @@ export class EditorState {
       content: observable,
       ast: observable.ref,
       selectedNode: observable.ref,
+      hoveredRect: observable.ref,
     });
   }
 
@@ -25,6 +27,7 @@ export class EditorState {
   content: string = "";
   ast: File | undefined = undefined;
   selectedNode: JSXElement | undefined = undefined;
+  hoveredRect: Rect | undefined = undefined;
 
   async loadFile(filePath: string, line: number, col: number) {
     if (this.filePath !== filePath) {

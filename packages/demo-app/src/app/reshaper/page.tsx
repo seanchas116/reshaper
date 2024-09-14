@@ -6,6 +6,8 @@ import { observer } from "mobx-react-lite";
 import { File, JSXAttribute, JSXElement } from "@babel/types";
 import traverse from "@babel/traverse";
 import path from "path-browserify";
+import { Rect } from "paintvec";
+import { action } from "mobx";
 
 export function findJSXElements(file: File): JSXElement[] {
   const jsxElements: JSXElement[] = [];
@@ -84,7 +86,18 @@ const Inspector = observer(() => {
   const stringValue = value?.type === "StringLiteral" ? value.value : undefined;
 
   return (
-    <div className="p-3">
+    <div className="p-3 text-xs">
+      <div className="mb-2 flex justify-between items-center">
+        <h2>
+          {node.openingElement.name.type === "JSXIdentifier"
+            ? node.openingElement.name.name
+            : "Unknown"}
+        </h2>
+        <div className="font-mono text-gray-400 font-[10px]">
+          {path.basename(editorState.filePath)}:{node.loc?.start.line}:
+          {node.loc?.start.column}
+        </div>
+      </div>
       <textarea
         className="block w-full h-32 bg-gray-100 rounded p-2 text-xs font-mono"
         value={stringValue}
@@ -116,24 +129,64 @@ const Editor = observer(() => {
               className="absolute w-full h-full"
               ref={iframeRef}
             ></iframe>
+            <div className="absolute w-full h-full">
+              {editorState.hoveredRect && (
+                <div
+                  className="absolute border border-blue-500"
+                  style={{
+                    left: editorState.hoveredRect.left,
+                    top: editorState.hoveredRect.top,
+                    width: editorState.hoveredRect.width,
+                    height: editorState.hoveredRect.height,
+                  }}
+                />
+              )}
+            </div>
             <div
               className="absolute w-full h-full"
-              onClick={(e) => {
+              onMouseMove={action((e) => {
                 // find the element that was clicked
                 const iframe = iframeRef.current;
                 if (!iframe) return;
+
+                editorState.hoveredRect = undefined;
 
                 const elem = iframe.contentDocument?.elementFromPoint(
                   e.clientX - iframe.getBoundingClientRect().left,
                   e.clientY - iframe.getBoundingClientRect().top
                 );
+                if (!elem) return;
 
-                const location = elem?.getAttribute("data-reshaper-loc");
-                if (location) {
-                  const [filePath, line, col] = location.split(":");
-                  editorState.revealLocation(filePath, +line, +col);
+                const location = elem.getAttribute("data-reshaper-loc");
+                if (!location) {
+                  return;
                 }
-              }}
+
+                editorState.hoveredRect = Rect.from(
+                  elem.getBoundingClientRect()
+                );
+              })}
+              onClick={action((e) => {
+                // find the element that was clicked
+                const iframe = iframeRef.current;
+                if (!iframe) return;
+
+                editorState.hoveredRect = undefined;
+
+                const elem = iframe.contentDocument?.elementFromPoint(
+                  e.clientX - iframe.getBoundingClientRect().left,
+                  e.clientY - iframe.getBoundingClientRect().top
+                );
+                if (!elem) return;
+
+                const location = elem.getAttribute("data-reshaper-loc");
+                if (!location) {
+                  return;
+                }
+
+                const [filePath, line, col] = location.split(":");
+                editorState.revealLocation(filePath, +line, +col);
+              })}
             />
           </div>
         </div>
