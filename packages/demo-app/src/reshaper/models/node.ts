@@ -167,6 +167,17 @@ export class Node {
     return this.data.babelNode;
   }
 
+  get className(): string | undefined {
+    return this.data.className;
+  }
+
+  set className(className: string | undefined) {
+    this.data = {
+      ...this.data,
+      className,
+    };
+  }
+
   @computed get mayHaveChildren() {
     return (
       this.babelNode.type === "JSXElement" ||

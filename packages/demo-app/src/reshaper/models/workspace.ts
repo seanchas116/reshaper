@@ -58,6 +58,7 @@ export class Workspace {
             parent: nodeForBabelNode.get(path.parent)?.id,
             order: order++,
             babelNode: path.node,
+            className: findClassNameValue(path.node),
           },
         );
         nodeForBabelNode.set(path.node, node);
@@ -72,4 +73,14 @@ export class Workspace {
   nodeForLocation(line: number, column: number): Node | undefined {
     return this.nodes.safeGet(line + ":" + column);
   }
+}
+
+function findClassNameValue(node: babel.JSXElement) {
+  const className = node.openingElement.attributes.find(
+    (attr): attr is babel.JSXAttribute => {
+      return attr.type === "JSXAttribute" && attr.name.name === "className";
+    },
+  );
+  const value = className?.value;
+  return value?.type === "StringLiteral" ? value.value : undefined;
 }

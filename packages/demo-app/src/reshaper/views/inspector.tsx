@@ -2,7 +2,6 @@
 
 import { useEditorState } from "../state/editor-state";
 import { observer } from "mobx-react-lite";
-import { JSXAttribute } from "@babel/types";
 import path from "path-browserify";
 
 const NodeInspector = observer(() => {
@@ -12,14 +11,6 @@ const NodeInspector = observer(() => {
 
   const babelNode = node.babelNode;
   if (babelNode.type !== "JSXElement") return null;
-
-  const className = babelNode.openingElement.attributes.find(
-    (attr): attr is JSXAttribute => {
-      return attr.type === "JSXAttribute" && attr.name.name === "className";
-    },
-  );
-  const value = className?.value;
-  const stringValue = value?.type === "StringLiteral" ? value.value : undefined;
 
   return (
     <div className="p-3 text-xs">
@@ -36,8 +27,10 @@ const NodeInspector = observer(() => {
       </div>
       <textarea
         className="block h-32 w-full rounded bg-gray-100 p-2 font-mono text-xs"
-        value={stringValue}
-        readOnly
+        value={node.className}
+        onChange={(e) => {
+          node.className = e.target.value;
+        }}
       />
     </div>
   );
