@@ -8,6 +8,7 @@ import traverse from "@babel/traverse";
 import path from "path-browserify";
 import { Rect } from "paintvec";
 import { action } from "mobx";
+import { useSearchParams } from "next/navigation";
 
 function findJSXElements(file: File): JSXElement[] {
   const jsxElements: JSXElement[] = [];
@@ -115,7 +116,8 @@ const Editor = observer(() => {
     <div className="grid grid-rows-[auto_1fr] w-screen h-screen fixed inset-0">
       <div className="h-10 border-b bg-white border-gray-200 flex items-center justify-center">
         <div className="bg-gray-100 w-[320px] rounded text-gray-500 px-3 py-1 text-sm">
-          http://localhost:3000
+          {window.location.origin}
+          {editorState.pathname}
         </div>
       </div>
       <div className="grid grid-cols-[auto_1fr_auto]">
@@ -125,7 +127,7 @@ const Editor = observer(() => {
         <div className="grid p-4 bg-gray-100">
           <div className="relative bg-white shadow">
             <iframe
-              src="/"
+              src={editorState.pathname}
               className="absolute w-full h-full"
               ref={iframeRef}
             ></iframe>
@@ -199,12 +201,22 @@ const Editor = observer(() => {
 });
 
 const Page = () => {
+  const searchParams = useSearchParams();
+
   const [editorState, setEditorState] = useState<EditorState>();
 
   useEffect(() => {
     const editorState = new EditorState();
     setEditorState(editorState);
   }, []);
+
+  const pathname = searchParams.get("path");
+
+  useEffect(() => {
+    if (editorState) {
+      editorState.pathname = pathname ?? "/";
+    }
+  }, [editorState, pathname]);
 
   return (
     editorState && (

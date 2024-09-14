@@ -22,6 +22,7 @@ export class EditorState {
   }
 
   filePath: string = "";
+  pathname: string = "";
   line: number = 0;
   col: number = 0;
   content: string = "";

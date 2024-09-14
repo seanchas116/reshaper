@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { EditButton } from "@/components/edit-button";
 
 // const geistSans = localFont({
 //   src: "./fonts/GeistVF.woff",
@@ -28,6 +29,7 @@ export default function RootLayout({
       // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <EditButton />
       </body>
     </html>
   );
