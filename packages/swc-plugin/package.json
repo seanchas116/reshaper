@@ -9,7 +9,8 @@
   ],
   "main": "target/wasm32-wasi/release/swc_plugin.wasm",
   "scripts": {
-    "prepublishOnly": "cargo build-wasi --release"
+    "build": "cargo build-wasi --release",
+    "prepublishOnly": "npm run build"
   },
   "files": [],
   "preferUnplugged": true

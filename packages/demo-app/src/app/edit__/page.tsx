@@ -9,7 +9,7 @@ import path from "path-browserify";
 import { Rect } from "paintvec";
 import { action } from "mobx";
 
-export function findJSXElements(file: File): JSXElement[] {
+function findJSXElements(file: File): JSXElement[] {
   const jsxElements: JSXElement[] = [];
 
   // Traverse the AST to find JSXElement nodes
