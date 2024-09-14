@@ -2,7 +2,9 @@
 
 Visual Editing Mode for React & Tailwind Apps
 
-Work in progress
+> ❗️ This project is a work in progress and not ready for actual editing yet.
+
+<video controls src="demo.mp4"></video>
 
 ## Launch Demo App
 
