@@ -110,7 +110,7 @@ export class BasicNode<TData extends BasicNodeData> {
     nodes: readonly this[],
     next: this | undefined,
   ): readonly this[] {
-    nodes = nodes.filter((node) => !node.includes(this));
+    nodes = nodes.filter((node) => node !== this && !node.includes(this));
 
     const children = this.children;
     const prev = children[(next?.index ?? children.length) - 1];
