@@ -50,4 +50,33 @@ export class Node extends BasicNode<NodeData> {
     const nameNode = babelNode.openingElement.name;
     return nameNode.type === "JSXIdentifier" ? nameNode.name : "";
   }
+
+  get modifiedBabelNode(): babel.Node {
+    const babelNode = this.babelNode;
+    if (babelNode.type !== "JSXElement") return babelNode;
+
+    // replace className if exists
+    const className = this.className;
+    if (!className) {
+      return babelNode;
+    }
+
+    const newAttributes = babelNode.openingElement.attributes.map((attr) => {
+      if (attr.type === "JSXAttribute" && attr.name.name === "className") {
+        return babel.jsxAttribute(
+          babel.jsxIdentifier("className"),
+          babel.stringLiteral(className),
+        );
+      }
+      return attr;
+    });
+
+    return {
+      ...babelNode,
+      openingElement: {
+        ...babelNode.openingElement,
+        attributes: newAttributes,
+      },
+    };
+  }
 }
