@@ -73,16 +73,11 @@ export class Workspace {
       { node: Node; babelNodeForParent: BabelNodeType }
     >();
 
-    const fileNode = this.nodes.add(filePath, {
-      babelNode: file,
-    });
-
     const toplevelStatementNodes = file.program.body.map((statement) => {
       return this.nodes.add(locationID(filePath, statement.loc!), {
         babelNode: statement,
       });
     });
-    fileNode.append(toplevelStatementNodes);
 
     for (const toplevel of toplevelStatementNodes) {
       nodeForBabelNode.set(toplevel.data.babelNode, {
@@ -175,6 +170,13 @@ export class Workspace {
         parent.append([node]);
       }
     }
+
+    const fileNode = this.nodes.add(filePath, {
+      babelNode: file,
+    });
+    fileNode.append(
+      toplevelStatementNodes.filter((node) => node.children.length > 0),
+    );
 
     this.fileNodes.set(filePath, fileNode);
     return fileNode;
