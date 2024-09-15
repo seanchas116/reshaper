@@ -15,6 +15,7 @@ export class EditorState {
   @observable filePath: string = "";
   @observable pathname: string = "";
   @observable.ref hoveredRect: Rect | undefined = undefined;
+  @observable hoveredNodeID: string | undefined = undefined;
 
   async loadFile(filePath: string, line: number, col: number) {
     if (this.filePath !== filePath) {

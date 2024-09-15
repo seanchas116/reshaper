@@ -45,6 +45,10 @@ export class Workspace {
     );
   }
 
+  clearSelection() {
+    this.selectedNodeIDs.clear();
+  }
+
   loadFileAST(file: babel.File) {
     this.nodeStore.data.clear();
 

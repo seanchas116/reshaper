@@ -5,6 +5,7 @@ import { observer } from "mobx-react-lite";
 import path from "path-browserify";
 import { Node } from "../models/node";
 import { action } from "mobx";
+import { NodeTreeView } from "./outline/node-tree-view";
 
 const ASTNodeView = observer(
   ({ node, depth }: { node: Node; depth: number }) => {
@@ -53,9 +54,7 @@ export const Outline = observer(() => {
         <div className="px-3 py-2 text-gray-400">
           {path.basename(editorState.filePath)}
         </div>
-        {editorState.workspace.rootNodes.map((node) => (
-          <ASTNodeView key={node.id} node={node} depth={0} />
-        ))}
+        <NodeTreeView />
       </div>
     </div>
   );

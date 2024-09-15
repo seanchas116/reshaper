@@ -42,4 +42,12 @@ export class Node extends BasicNode<NodeData> {
       this.babelNode.type === "JSXFragment"
     );
   }
+
+  get name(): string {
+    const babelNode = this.babelNode;
+    if (babelNode.type !== "JSXElement") return "";
+
+    const nameNode = babelNode.openingElement.name;
+    return nameNode.type === "JSXIdentifier" ? nameNode.name : "";
+  }
 }
