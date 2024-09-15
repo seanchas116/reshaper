@@ -12,12 +12,10 @@ export const NodeIcon: React.FC<{
   switch (node.babelNode.type) {
     case "JSXElement":
     case "JSXFragment":
-      return <Icon className="opacity-70" icon="icon-park-outline:code" />;
+      return <Icon icon="icon-park-outline:code" />;
     case "JSXExpressionContainer":
     case "JSXSpreadChild":
-      return (
-        <Icon className="opacity-70" icon="icon-park-outline:code-brackets" />
-      );
+      return <Icon icon="icon-park-outline:code-brackets" />;
   }
 });
 
@@ -37,7 +35,7 @@ export const NodeTreeRow: React.FC<{
       }}
       className="flex h-full min-w-0 flex-1 items-center"
     >
-      <span className="mr-2 rounded-full p-1">
+      <span className="mr-2 rounded-full p-1 opacity-30">
         <NodeIcon node={node} selected={node.selected} />
       </span>
       {node.name}
