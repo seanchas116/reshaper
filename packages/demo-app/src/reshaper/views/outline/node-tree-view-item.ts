@@ -55,9 +55,17 @@ export class NodeTreeViewItem extends TreeViewItem {
   }
 
   @computed get children(): NodeTreeViewItem[] {
-    return this.node.children.map((child) =>
-      NodeTreeViewItem.get(this.editorState, child),
-    );
+    return this.node.children
+      .filter((child) => {
+        if (
+          child.babelNode.type === "JSXText" &&
+          !child.babelNode.value.trim()
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .map((child) => NodeTreeViewItem.get(this.editorState, child));
   }
 
   @computed get indexPath(): readonly number[] {
