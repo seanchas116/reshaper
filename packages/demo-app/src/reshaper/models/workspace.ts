@@ -63,9 +63,11 @@ export class Workspace {
     //     (recursive)
     //  ...
 
-    const existingNode = this.fileNodes.get(filePath);
-    if (existingNode) {
-      existingNode.delete();
+    {
+      const existingNode = this.fileNodes.get(filePath);
+      if (existingNode) {
+        existingNode.delete();
+      }
     }
 
     const nodeForBabelNode = new Map<
@@ -86,80 +88,85 @@ export class Workspace {
       });
     }
 
-    const visitElementOrFragment = (
-      path: NodePath<babel.JSXElement> | NodePath<babel.JSXFragment>,
-    ) => {
-      path.node.children;
-      const node = this.nodes.add(locationID(filePath, path.node.loc!), {
-        babelNode: path.node,
-        className:
-          path.node.type === "JSXElement"
-            ? findClassNameValue(path.node)
-            : undefined,
+    {
+      const visitElementOrFragment = (
+        path: NodePath<babel.JSXElement> | NodePath<babel.JSXFragment>,
+      ) => {
+        path.node.children;
+        const node = this.nodes.add(locationID(filePath, path.node.loc!), {
+          babelNode: path.node,
+          className:
+            path.node.type === "JSXElement"
+              ? findClassNameValue(path.node)
+              : undefined,
+        });
+
+        let babelParent;
+        if (
+          path.parent.type === "JSXElement" ||
+          path.parent.type === "JSXFragment"
+        ) {
+          babelParent = path.parent;
+        } else {
+          // find closes expression container or spread child
+          babelParent = path.findParent((p) => {
+            return (
+              p.type === "JSXExpressionContainer" || p.type === "JSXSpreadChild"
+            );
+          })?.node as
+            | babel.JSXExpressionContainer
+            | babel.JSXSpreadChild
+            | null;
+
+          const toplevelStatement = path.findParent((p) => {
+            return p.parent.type === "Program";
+          })?.node as babel.Statement | null;
+
+          babelParent = babelParent ?? toplevelStatement;
+        }
+
+        if (!babelParent) {
+          return;
+        }
+
+        nodeForBabelNode.set(path.node, {
+          node,
+          babelNodeForParent: babelParent,
+        });
+      };
+
+      const visitOtherJSXChild = (
+        path:
+          | NodePath<babel.JSXText>
+          | NodePath<babel.JSXExpressionContainer>
+          | NodePath<babel.JSXSpreadChild>,
+      ) => {
+        if (
+          path.parent.type !== "JSXElement" &&
+          path.parent.type !== "JSXFragment"
+        ) {
+          return;
+        }
+
+        const node = this.nodes.add(locationID(filePath, path.node.loc!), {
+          babelNode: path.node,
+        });
+
+        nodeForBabelNode.set(path.node, {
+          node,
+          babelNodeForParent: path.parent,
+        });
+      };
+
+      // create nodes
+      traverse(file, {
+        JSXText: visitOtherJSXChild,
+        JSXExpressionContainer: visitOtherJSXChild,
+        JSXSpreadChild: visitOtherJSXChild,
+        JSXElement: visitElementOrFragment,
+        JSXFragment: visitElementOrFragment,
       });
-
-      let babelParent;
-      if (
-        path.parent.type === "JSXElement" ||
-        path.parent.type === "JSXFragment"
-      ) {
-        babelParent = path.parent;
-      } else {
-        // find closes expression container or spread child
-        babelParent = path.findParent((p) => {
-          return (
-            p.type === "JSXExpressionContainer" || p.type === "JSXSpreadChild"
-          );
-        })?.node as babel.JSXExpressionContainer | babel.JSXSpreadChild | null;
-
-        const toplevelStatement = path.findParent((p) => {
-          return p.parent.type === "Program";
-        })?.node as babel.Statement | null;
-
-        babelParent = babelParent ?? toplevelStatement;
-      }
-
-      if (!babelParent) {
-        return;
-      }
-
-      nodeForBabelNode.set(path.node, {
-        node,
-        babelNodeForParent: babelParent,
-      });
-    };
-
-    const visitOtherJSXChild = (
-      path:
-        | NodePath<babel.JSXText>
-        | NodePath<babel.JSXExpressionContainer>
-        | NodePath<babel.JSXSpreadChild>,
-    ) => {
-      if (
-        path.parent.type !== "JSXElement" &&
-        path.parent.type !== "JSXFragment"
-      ) {
-        return;
-      }
-
-      const node = this.nodes.add(locationID(filePath, path.node.loc!), {
-        babelNode: path.node,
-      });
-
-      nodeForBabelNode.set(path.node, {
-        node,
-        babelNodeForParent: path.parent,
-      });
-    };
-
-    // create nodes
-    traverse(file, {
-      JSXText: visitOtherJSXChild,
-      JSXExpressionContainer: visitOtherJSXChild,
-      JSXSpreadChild: visitOtherJSXChild,
-      JSXElement: visitElementOrFragment,
-      JSXFragment: visitElementOrFragment,
-    });
+    }
 
     for (const {
       node,
