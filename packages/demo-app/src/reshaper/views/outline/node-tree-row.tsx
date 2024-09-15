@@ -10,18 +10,14 @@ export const NodeIcon: React.FC<{
   selected?: boolean;
 }> = observer(({ node }) => {
   switch (node.babelNode.type) {
-    case "File":
-      return null;
     case "JSXElement":
     case "JSXFragment":
+      return <Icon className="opacity-70" icon="icon-park-outline:code" />;
+    case "JSXExpressionContainer":
+    case "JSXSpreadChild":
       return (
-        <Icon className="opacity-70" icon="material-symbols:code-rounded" />
+        <Icon className="opacity-70" icon="icon-park-outline:code-brackets" />
       );
-    case "JSXText":
-      <Icon
-        className="opacity-70"
-        icon="material-symbols:data-object-rounded"
-      />;
   }
 });
 
