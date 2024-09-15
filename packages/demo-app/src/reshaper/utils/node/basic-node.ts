@@ -1,10 +1,11 @@
 import { computed, makeObservable, observable } from "mobx";
 import { InstanceManager } from "./instance-manager";
 import { lerp } from "../math";
+import { generateKeyBetween, generateNKeysBetween } from "fractional-indexing";
 
 export type BasicNodeData = {
   readonly parent?: string;
-  readonly order?: number;
+  readonly order?: string;
 };
 
 interface SelectionStore {
@@ -114,29 +115,22 @@ export class BasicNode<TData extends BasicNodeData> {
     const children = this.children;
     const prev = children[(next?.index ?? children.length) - 1];
 
+    const keys = generateNKeysBetween(prev?.order, next?.order, nodes.length);
+
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i];
-      const order =
-        prev && next
-          ? lerp(prev.order ?? 0, next.order ?? 0, (i + 1) / (nodes.length + 1))
-          : prev
-            ? (prev.order ?? 0) + i + 1
-            : next
-              ? (next.order ?? 0) - nodes.length + i
-              : i;
-
       node.data = {
         ...node.data,
         parent: this.id,
-        order,
+        order: keys[i],
       };
     }
 
     return nodes;
   }
 
-  get order(): number {
-    return this.data.order ?? 0;
+  get order(): string {
+    return this.data.order ?? generateKeyBetween(null, null);
   }
 
   @computed get selected(): boolean {

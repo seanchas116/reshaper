@@ -1,3 +1,4 @@
+import { generateKeyBetween } from "fractional-indexing";
 import { Store } from "./store";
 import { createAtom } from "mobx";
 
@@ -7,13 +8,16 @@ export interface FractionalSortResult {
 }
 
 export class FractionalSort<TData> {
-  constructor(store: Store<string, TData>, getOrder: (data: TData) => number) {
+  constructor(
+    store: Store<string, TData>,
+    getOrder: (data: TData) => string | undefined,
+  ) {
     this.store = store;
     this.getOrder = getOrder;
   }
 
   readonly store: Store<string, TData>;
-  readonly getOrder: (data: TData) => number;
+  readonly getOrder: (data: TData) => string | undefined;
 
   readonly items = new Set<string>();
   private cache: FractionalSortResult | undefined;
@@ -40,9 +44,14 @@ export class FractionalSort<TData> {
       children.sort((a, b) => {
         const aData = this.store.data.get(a);
         const bData = this.store.data.get(b);
-        const aOrder = aData ? this.getOrder(aData) : 0;
-        const bOrder = bData ? this.getOrder(bData) : 0;
-        return aOrder - bOrder;
+        const aOrder = aData
+          ? (this.getOrder(aData) ?? generateKeyBetween(null, null))
+          : generateKeyBetween(null, null);
+        const bOrder = bData
+          ? (this.getOrder(bData) ?? generateKeyBetween(null, null))
+          : generateKeyBetween(null, null);
+
+        return compareStrings(aOrder, bOrder) || compareStrings(a, b);
       });
 
       this.cache = {
@@ -52,4 +61,10 @@ export class FractionalSort<TData> {
     }
     return this.cache;
   }
+}
+
+function compareStrings(a: string, b: string) {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
 }

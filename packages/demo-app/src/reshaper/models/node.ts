@@ -5,7 +5,7 @@ import { BasicNode } from "../utils/node/basic-node";
 
 export type NodeData = {
   readonly parent?: string;
-  readonly order: number;
+  readonly order?: string;
   readonly babelNode: babel.Node; // original babel node: do not edit this directly
   readonly className?: string;
 };

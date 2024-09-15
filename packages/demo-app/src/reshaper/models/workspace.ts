@@ -7,6 +7,7 @@ import * as babel from "@babel/types";
 import traverse from "@babel/traverse";
 import compact from "just-compact";
 import { InstanceManager } from "../utils/node/instance-manager";
+import { generateKeyBetween } from "fractional-indexing";
 
 export class Workspace {
   constructor() {
@@ -48,7 +49,7 @@ export class Workspace {
     this.nodeStore.data.clear();
 
     const nodeForBabelNode = new Map<babel.Node, Node>();
-    let order = 0;
+    let order = generateKeyBetween(null, null);
 
     traverse(file, {
       JSXElement: (path) => {
@@ -57,11 +58,12 @@ export class Workspace {
           path.node.loc!.start.line + ":" + path.node.loc!.start.column,
           {
             parent: nodeForBabelNode.get(path.parent)?.id,
-            order: order++,
+            order: order,
             babelNode: path.node,
             className: findClassNameValue(path.node),
           },
         );
+        order = generateKeyBetween(order, null);
         nodeForBabelNode.set(path.node, node);
       },
     });

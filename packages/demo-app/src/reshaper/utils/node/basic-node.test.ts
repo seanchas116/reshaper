@@ -14,7 +14,7 @@ describe(BasicNode.name, () => {
       factory: (instances, id): BasicNode<BasicNodeData> =>
         new BasicNode(instances, selection, id),
       getParent: (data) => data.parent,
-      getOrder: (data) => data.order ?? 0,
+      getOrder: (data) => data.order,
     });
     const node = instances.add("1", {});
     const child1 = instances.add("2", {});

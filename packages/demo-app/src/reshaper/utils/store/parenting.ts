@@ -7,7 +7,7 @@ export class Parenting<TData> {
   constructor(
     store: Store<string, TData>,
     getParent: (data: TData) => string | undefined,
-    getOrder: (data: TData) => number,
+    getOrder: (data: TData) => string | undefined,
   ) {
     this.store = store;
     this.getParent = getParent;
@@ -24,7 +24,7 @@ export class Parenting<TData> {
   private store: Store<string, TData>;
   private childrenMap = new Map<string, FractionalSort<TData>>();
   private getParent: (data: TData) => string | undefined;
-  private getOrder: (data: TData) => number;
+  private getOrder: (data: TData) => string | undefined;
 
   private onChange(change: IMapDidChange<string, TData>) {
     const oldValue = "oldValue" in change ? change.oldValue : undefined;

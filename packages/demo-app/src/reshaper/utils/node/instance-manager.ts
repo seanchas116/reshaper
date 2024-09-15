@@ -14,7 +14,7 @@ export class InstanceManager<TData, TInstance> {
         id: string,
       ) => TInstance;
       getParent: (data: TData) => string | undefined;
-      getOrder: (data: TData) => number;
+      getOrder: (data: TData) => string | undefined;
     },
   ) {
     this.store = store;

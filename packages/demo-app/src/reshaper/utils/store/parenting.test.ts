@@ -8,7 +8,7 @@ describe(Parenting, () => {
       string,
       {
         parent?: string;
-        order: number;
+        order?: string;
         name: string;
       }
     >();
@@ -20,9 +20,9 @@ describe(Parenting, () => {
 
     // generate example data
 
-    const a = { parent: undefined, order: 0, name: "a" };
-    const b = { parent: "a", order: 1, name: "b" };
-    const c = { parent: "a", order: 2, name: "c" };
+    const a = { parent: undefined, order: "a0", name: "a" };
+    const b = { parent: "a", order: "a1", name: "b" };
+    const c = { parent: "a", order: "a2", name: "c" };
 
     store.data.set("a", a);
     store.data.set("b", b);
@@ -40,13 +40,13 @@ describe(Parenting, () => {
       string,
       {
         parent?: string;
-        order: number;
+        order?: string;
         name: string;
       }
     >();
 
-    const a = { parent: undefined, order: 0, name: "a" };
-    const b = { parent: "a", order: 1, name: "b" };
+    const a = { parent: undefined, order: "a0", name: "a" };
+    const b = { parent: "a", order: "a1", name: "b" };
     store.data.set("a", a);
     store.data.set("b", b);
 
@@ -58,7 +58,7 @@ describe(Parenting, () => {
 
     // generate example data
 
-    const c = { parent: "a", order: 2, name: "c" };
+    const c = { parent: "a", order: "a2", name: "c" };
     store.data.set("c", c);
 
     expect(parenting.getChildren("a").items).toEqual(["b", "c"]);
