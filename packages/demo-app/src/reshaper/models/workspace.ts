@@ -8,6 +8,10 @@ import traverse, { NodePath } from "@babel/traverse";
 import compact from "just-compact";
 import { InstanceManager } from "../utils/node/instance-manager";
 
+function locationID(filePath: string, location: babel.SourceLocation) {
+  return `${filePath}:${location.start.line}:${location.start.column}`;
+}
+
 export class Workspace {
   constructor() {
     this.nodeStore = new Store<string, NodeData>();
@@ -64,29 +68,40 @@ export class Workspace {
       existingNode.delete();
     }
 
-    const fileNode = this.nodes.add("file:" + filePath, {
+    const nodeForBabelNode = new Map<
+      BabelNodeType,
+      { node: Node; babelNodeForParent: BabelNodeType }
+    >();
+
+    const fileNode = this.nodes.add(filePath, {
       babelNode: file,
     });
 
-    const nodeForBabelNode = new Map<
-      BabelNodeType,
-      { node: Node; babelParent: BabelNodeType }
-    >();
+    const toplevelStatementNodes = file.program.body.map((statement) => {
+      return this.nodes.add(locationID(filePath, statement.loc!), {
+        babelNode: statement,
+      });
+    });
+    fileNode.append(toplevelStatementNodes);
+
+    for (const toplevel of toplevelStatementNodes) {
+      nodeForBabelNode.set(toplevel.data.babelNode, {
+        node: toplevel,
+        babelNodeForParent: file,
+      });
+    }
 
     const visitElementOrFragment = (
       path: NodePath<babel.JSXElement> | NodePath<babel.JSXFragment>,
     ) => {
       path.node.children;
-      const node = this.nodes.add(
-        path.node.loc!.start.line + ":" + path.node.loc!.start.column,
-        {
-          babelNode: path.node,
-          className:
-            path.node.type === "JSXElement"
-              ? findClassNameValue(path.node)
-              : undefined,
-        },
-      );
+      const node = this.nodes.add(locationID(filePath, path.node.loc!), {
+        babelNode: path.node,
+        className:
+          path.node.type === "JSXElement"
+            ? findClassNameValue(path.node)
+            : undefined,
+      });
 
       let babelParent;
       if (
@@ -101,11 +116,21 @@ export class Workspace {
             p.type === "JSXExpressionContainer" || p.type === "JSXSpreadChild"
           );
         })?.node as babel.JSXExpressionContainer | babel.JSXSpreadChild | null;
+
+        const toplevelStatement = path.findParent((p) => {
+          return p.parent.type === "Program";
+        })?.node as babel.Statement | null;
+
+        babelParent = babelParent ?? toplevelStatement;
+      }
+
+      if (!babelParent) {
+        return;
       }
 
       nodeForBabelNode.set(path.node, {
         node,
-        babelParent: babelParent ?? file,
+        babelNodeForParent: babelParent,
       });
     };
 
@@ -122,14 +147,14 @@ export class Workspace {
         return;
       }
 
-      const node = this.nodes.add(
-        path.node.loc!.start.line + ":" + path.node.loc!.start.column,
-        {
-          babelNode: path.node,
-        },
-      );
+      const node = this.nodes.add(locationID(filePath, path.node.loc!), {
+        babelNode: path.node,
+      });
 
-      nodeForBabelNode.set(path.node, { node, babelParent: path.parent });
+      nodeForBabelNode.set(path.node, {
+        node,
+        babelNodeForParent: path.parent,
+      });
     };
 
     // create nodes
@@ -141,12 +166,13 @@ export class Workspace {
       JSXFragment: visitElementOrFragment,
     });
 
-    for (const { node, babelParent } of nodeForBabelNode.values()) {
+    for (const {
+      node,
+      babelNodeForParent: babelParent,
+    } of nodeForBabelNode.values()) {
       const parent = nodeForBabelNode.get(babelParent)?.node;
       if (parent) {
         parent.append([node]);
-      } else {
-        fileNode.append([node]);
       }
     }
 
@@ -154,8 +180,12 @@ export class Workspace {
     return fileNode;
   }
 
-  nodeForLocation(line: number, column: number): Node | undefined {
-    return this.nodes.safeGet(line + ":" + column);
+  nodeForLocation(
+    filePath: string,
+    line: number,
+    column: number,
+  ): Node | undefined {
+    return this.nodes.safeGet(`${filePath}:${line}:${column}`);
   }
 }
 

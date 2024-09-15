@@ -5,6 +5,7 @@ import { BasicNode } from "../utils/node/basic-node";
 
 export type BabelNodeType =
   | babel.File
+  | babel.Statement
   | babel.JSXElement
   | babel.JSXFragment
   | babel.JSXText

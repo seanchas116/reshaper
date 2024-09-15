@@ -41,7 +41,7 @@ export class EditorState {
       fileNode = this.workspace.loadFileAST(filePath, ast);
     }
 
-    const node = this.workspace.nodeForLocation(line, col);
+    const node = this.workspace.nodeForLocation(filePath, line, col);
     this.workspace.selectedNodeIDs.replace(node ? [node.id] : []);
     node?.expandAllAncestors();
     this.filePath = filePath;

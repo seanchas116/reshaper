@@ -82,7 +82,11 @@ export const Viewport = observer(() => {
             }
             const [filePath, line, col] = location.split(":");
 
-            const node = editorState.workspace.nodeForLocation(+line, +col);
+            const node = editorState.workspace.nodeForLocation(
+              filePath,
+              +line,
+              +col,
+            );
             editorState.hoveredNodeID = node?.id;
           })}
           onClick={action((e) => {
