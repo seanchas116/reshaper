@@ -129,6 +129,10 @@ export class BasicNode<TData extends BasicNodeData> {
     return nodes;
   }
 
+  append(nodes: readonly this[]): readonly this[] {
+    return this.insertBefore(nodes, undefined);
+  }
+
   get order(): string {
     return this.data.order ?? generateKeyBetween(null, null);
   }

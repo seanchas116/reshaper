@@ -7,7 +7,6 @@ import * as babel from "@babel/types";
 import traverse from "@babel/traverse";
 import compact from "just-compact";
 import { InstanceManager } from "../utils/node/instance-manager";
-import { generateKeyBetween } from "fractional-indexing";
 
 export class Workspace {
   constructor() {
@@ -37,8 +36,6 @@ export class Workspace {
   readonly nodeParenting: Parenting<NodeData>;
   readonly selectedNodeIDs = observable.set<string>();
 
-  @observable.ref rootNodes: Node[] = [];
-
   @computed get selectedNodes(): Node[] {
     return compact(
       Array.from(this.selectedNodeIDs).map((id) => this.nodes.safeGet(id)),
@@ -49,32 +46,49 @@ export class Workspace {
     this.selectedNodeIDs.clear();
   }
 
-  loadFileAST(file: babel.File) {
-    this.nodeStore.data.clear();
+  readonly fileNodes = new Map<string, Node>();
 
-    const nodeForBabelNode = new Map<babel.Node, Node>();
-    let order = generateKeyBetween(null, null);
+  loadFileAST(filePath: string, file: babel.File) {
+    const existingNode = this.fileNodes.get(filePath);
+    if (existingNode) {
+      existingNode.delete();
+    }
 
+    const fileNode = this.nodes.add("file:" + filePath, {
+      babelNode: file,
+    });
+
+    const nodeForBabelNode = new Map<
+      babel.Node,
+      { node: Node; babelParent: babel.Node }
+    >();
+
+    // create nodes
     traverse(file, {
       JSXElement: (path) => {
         path.parent;
         const node = this.nodes.add(
           path.node.loc!.start.line + ":" + path.node.loc!.start.column,
           {
-            parent: nodeForBabelNode.get(path.parent)?.id,
-            order: order,
             babelNode: path.node,
             className: findClassNameValue(path.node),
           },
         );
-        order = generateKeyBetween(order, null);
-        nodeForBabelNode.set(path.node, node);
+        nodeForBabelNode.set(path.node, { node, babelParent: path.parent });
       },
     });
 
-    this.rootNodes = [...nodeForBabelNode.values()].filter(
-      (node) => !node.parent,
-    );
+    for (const { node, babelParent } of nodeForBabelNode.values()) {
+      const parent = nodeForBabelNode.get(babelParent)?.node;
+      if (parent) {
+        parent.append([node]);
+      } else {
+        fileNode.append([node]);
+      }
+    }
+
+    this.fileNodes.set(filePath, fileNode);
+    return fileNode;
   }
 
   nodeForLocation(line: number, column: number): Node | undefined {
