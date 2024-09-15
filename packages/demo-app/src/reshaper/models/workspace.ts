@@ -15,7 +15,7 @@ export class Workspace {
     this.undoManager = new UndoManager([this.nodeStore]);
 
     this.nodes = new InstanceManager(this.nodeStore, {
-      factory: (id) => new Node(this, id),
+      factory: (_, id) => new Node(this, id),
       getParent: (data) => data.parent,
       getOrder: (data) => data.order,
     });

@@ -9,7 +9,10 @@ export class InstanceManager<TData, TInstance> {
       getParent,
       getOrder,
     }: {
-      factory: (id: string) => TInstance;
+      factory: (
+        instances: InstanceManager<TData, TInstance>,
+        id: string,
+      ) => TInstance;
       getParent: (data: TData) => string | undefined;
       getOrder: (data: TData) => number;
     },
@@ -17,7 +20,7 @@ export class InstanceManager<TData, TInstance> {
     this.store = store;
     this.store.data.observe_((change) => {
       if (change.type === "add") {
-        this.instances.set(change.name, factory(change.name));
+        this.instances.set(change.name, factory(this, change.name));
       } else if (change.type === "delete") {
         this.instances.delete(change.name);
       }

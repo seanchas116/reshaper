@@ -7,26 +7,21 @@ describe(BasicNode.name, () => {
   it("should handle basic tree operations", () => {
     const store = new Store<string, BasicNodeData>();
     const selection = new Set<string>();
-    const instanceManager = new InstanceManager<
+    const instances = new InstanceManager<
       BasicNodeData,
       BasicNode<BasicNodeData>
     >(store, {
-      factory: (id): BasicNode<BasicNodeData> =>
-        new BasicNode(instanceManager, selection, id),
+      factory: (instances, id): BasicNode<BasicNodeData> =>
+        new BasicNode(instances, selection, id),
       getParent: (data) => data.parent,
-      getOrder: (data) => data.order,
+      getOrder: (data) => data.order ?? 0,
     });
-    const node = instanceManager.add("1", {
-      order: 0,
-    });
-    const child1 = instanceManager.add("2", {
-      order: 0,
-    });
-    const child2 = instanceManager.add("3", {
-      order: 0,
-    });
+    const node = instances.add("1", {});
+    const child1 = instances.add("2", {});
+    const child2 = instances.add("3", {});
 
-    node.insertBefore([child1, child2], undefined);
+    node.insertBefore([child2], undefined);
+    node.insertBefore([child1], child2);
     expectIdsEqual(node.children, [child1, child2]);
     expect(child1.parent).toBe(node);
     expect(child2.parent).toBe(node);

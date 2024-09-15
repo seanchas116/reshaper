@@ -4,7 +4,7 @@ import { lerp } from "../math";
 
 export type BasicNodeData = {
   readonly parent?: string;
-  readonly order: number;
+  readonly order?: number;
 };
 
 interface SelectionStore {
@@ -136,7 +136,7 @@ export class BasicNode<TData extends BasicNodeData> {
   }
 
   get order(): number {
-    return this.data.order;
+    return this.data.order ?? 0;
   }
 
   @computed get selected(): boolean {
