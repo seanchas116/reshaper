@@ -29,10 +29,12 @@
     "path-browserify": "^1.0.1",
     "react": "^18",
     "react-dom": "^18",
+    "react-hotkeys-hook": "^4.5.1",
     "react-merge-refs": "^2.1.1",
     "scroll-into-view-if-needed": "^3.1.0",
     "tailwind-merge": "^2.5.2",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "ts-key-enum": "^3.0.13"
   },
   "devDependencies": {
     "@babel/types": "^7.25.6",
