@@ -107,11 +107,18 @@ export class NodeTreeViewItem extends TreeViewItem {
   }
 
   @computed get draggable() {
-    return !!this.node.parent;
+    const parentBabelNode = this.node.parent?.babelNode;
+    return (
+      parentBabelNode?.type === "JSXElement" ||
+      parentBabelNode?.type === "JSXFragment"
+    );
   }
 
   @computed get droppable() {
-    return this.node.mayHaveChildren;
+    return (
+      this.node.babelNode.type === "JSXElement" ||
+      this.node.babelNode.type === "JSXFragment"
+    );
   }
 
   drop(nextItem: NodeTreeViewItem | undefined, shouldCopy: boolean): void {
