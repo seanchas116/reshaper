@@ -37,6 +37,7 @@ export class EditorState {
 
     const node = this.workspace.nodeForLocation(line, col);
     this.workspace.selectedNodeIDs.replace(node ? [node.id] : []);
+    node?.expandAllAncestors();
   }
 
   async revealLocation(filePath: string, line: number, col: number) {
