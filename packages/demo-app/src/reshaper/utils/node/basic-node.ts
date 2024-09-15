@@ -2,7 +2,7 @@ import { computed, makeObservable, observable } from "mobx";
 import { InstanceManager } from "./instance-manager";
 import { lerp } from "../math";
 
-export type NodeData = {
+export type BasicNodeData = {
   readonly parent?: string;
   readonly order: number;
 };
@@ -13,7 +13,7 @@ interface SelectionStore {
   delete(id: string): void;
 }
 
-export class BasicNode<TData extends NodeData> {
+export class BasicNode<TData extends BasicNodeData> {
   constructor(
     instances: InstanceManager<TData, BasicNode<TData>>,
     selection: SelectionStore,

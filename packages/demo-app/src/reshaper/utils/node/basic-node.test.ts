@@ -1,21 +1,29 @@
-import { Node } from "./node";
 import { describe, expect, it } from "vitest";
-import { Workspace } from "./workspace";
+import { InstanceManager } from "./instance-manager";
+import { BasicNodeData, BasicNode } from "./basic-node";
+import { Store } from "../store/store";
 
-describe(Node.name, () => {
+describe(BasicNode.name, () => {
   it("should handle basic tree operations", () => {
-    const workspace = new Workspace();
-    const node = workspace.nodes.add("1", {
-      order: 0,
-      babelNode: {} as any,
+    const store = new Store<string, BasicNodeData>();
+    const selection = new Set<string>();
+    const instanceManager = new InstanceManager<
+      BasicNodeData,
+      BasicNode<BasicNodeData>
+    >(store, {
+      factory: (id): BasicNode<BasicNodeData> =>
+        new BasicNode(instanceManager, selection, id),
+      getParent: (data) => data.parent,
+      getOrder: (data) => data.order,
     });
-    const child1 = workspace.nodes.add("2", {
+    const node = instanceManager.add("1", {
       order: 0,
-      babelNode: {} as any,
     });
-    const child2 = workspace.nodes.add("3", {
+    const child1 = instanceManager.add("2", {
       order: 0,
-      babelNode: {} as any,
+    });
+    const child2 = instanceManager.add("3", {
+      order: 0,
     });
 
     node.insertBefore([child1, child2], undefined);
@@ -44,6 +52,9 @@ describe(Node.name, () => {
   });
 });
 
-function expectIdsEqual(a: Node[], b: Node[]) {
+function expectIdsEqual(
+  a: BasicNode<BasicNodeData>[],
+  b: BasicNode<BasicNodeData>[],
+) {
   expect(a.map((node) => node.id)).toEqual(b.map((node) => node.id));
 }
