@@ -3,10 +3,18 @@ import { Workspace } from "./workspace";
 import * as babel from "@babel/types";
 import { BasicNode } from "../utils/node/basic-node";
 
+export type BabelNodeType =
+  | babel.File
+  | babel.JSXElement
+  | babel.JSXFragment
+  | babel.JSXText
+  | babel.JSXExpressionContainer
+  | babel.JSXSpreadChild;
+
 export type NodeData = {
   readonly parent?: string;
   readonly order?: string;
-  readonly babelNode: babel.Node; // original babel node: do not edit this directly
+  readonly babelNode: BabelNodeType; // original babel node: do not edit this directly
   readonly className?: string;
 };
 
@@ -45,10 +53,17 @@ export class Node extends BasicNode<NodeData> {
 
   get name(): string {
     const babelNode = this.babelNode;
-    if (babelNode.type !== "JSXElement") return "";
 
-    const nameNode = babelNode.openingElement.name;
-    return nameNode.type === "JSXIdentifier" ? nameNode.name : "";
+    if (babelNode.type === "JSXText") {
+      return babelNode.value;
+    }
+
+    if (babelNode.type === "JSXElement") {
+      const nameNode = babelNode.openingElement.name;
+      return nameNode.type === "JSXIdentifier" ? nameNode.name : "";
+    }
+
+    return "";
   }
 
   get modifiedBabelNode(): babel.Node {

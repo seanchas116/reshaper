@@ -9,12 +9,20 @@ export const NodeIcon: React.FC<{
   node: Node;
   selected?: boolean;
 }> = observer(({ node }) => {
-  return (
-    <Icon
-      className="opacity-70"
-      icon="material-symbols:square-outline-rounded"
-    />
-  );
+  switch (node.babelNode.type) {
+    case "File":
+      return null;
+    case "JSXElement":
+    case "JSXFragment":
+      return (
+        <Icon className="opacity-70" icon="material-symbols:code-rounded" />
+      );
+    case "JSXText":
+      <Icon
+        className="opacity-70"
+        icon="material-symbols:data-object-rounded"
+      />;
+  }
 });
 
 NodeIcon.displayName = "NodeIcon";
