@@ -70,6 +70,7 @@ export class EditorState {
       if (!file) {
         return;
       }
+      file.updateElementIndexForNode();
       const ast = file.toModifiedAST();
       const code = await formatCode(
         generate(ast, {
@@ -77,8 +78,6 @@ export class EditorState {
           retainFunctionParens: true,
         }).code,
       );
-
-      // TODO: update element indexes when structure changes
 
       await saveFile(file.filePath, code);
     }),
