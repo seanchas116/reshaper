@@ -66,7 +66,10 @@ export class EditorState {
       return;
     }
     const ast = file.toModifiedAST();
-    const code = generate(ast).code;
+    const code = generate(ast, {
+      retainLines: true,
+      retainFunctionParens: true,
+    }).code;
     console.log(code);
 
     await saveFile(file.filePath, generate(ast).code);
