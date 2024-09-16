@@ -54,7 +54,7 @@ export default function Portfolio() {
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
                   Jane Doe
                 </h1>
-                <p className="mx-auto max-w-[700px] text-gray-500 dark:text-gray-400 md:text-xl">
+                <p className="mx-auto max-w-[700px] text-gray-300 dark:text-gray-400 md:text-xl">
                   React Developer | Building beautiful and functional web
                   applications
                 </p>

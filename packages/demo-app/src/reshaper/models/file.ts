@@ -24,6 +24,9 @@ export class File {
 
   readonly nodeForLocation = new Map<number, Node>();
 
+  readonly nodeForElementIndex = new Map<number, Node>();
+  readonly elementIndexForNode = new Map<Node, number>();
+
   constructor(
     workspace: Workspace,
     filePath: string,
@@ -38,6 +41,23 @@ export class File {
       babelNode: this.babelNode,
     });
     this.load(code, babelNode);
+  }
+
+  updateElementIndexForNode() {
+    let elementIndex = 0;
+
+    const visit = (node: Node) => {
+      if (node.babelNode.type === "JSXElement") {
+        this.nodeForElementIndex.set(elementIndex, node);
+        this.elementIndexForNode.set(node, elementIndex);
+        elementIndex++;
+      }
+      for (const child of node.children) {
+        visit(child);
+      }
+    };
+
+    visit(this.node);
   }
 
   @action load(code: string, babelNode: babel.File) {
@@ -61,12 +81,12 @@ export class File {
       { node: Node; babelNodeForParent: BabelNodeType }
     >();
 
-    let otherNodeIndex = 0;
+    let id = 0;
 
     const toplevelStatementNodes = this.babelNode.program.body.map(
       (statement) => {
         return this.workspace.nodes.add(
-          (this.filePath + ":statement:" + otherNodeIndex++).toString(),
+          (this.filePath + ":" + id++).toString(),
           {
             babelNode: statement,
           },
@@ -81,31 +101,18 @@ export class File {
       });
     }
 
-    let elementIndex = 0;
-
     {
       const visitElementOrFragment = (
         path: NodePath<babel.JSXElement> | NodePath<babel.JSXFragment>,
       ) => {
         path.node.children;
-        const node = this.workspace.nodes.add(
-          this.filePath +
-            (path.node.type === "JSXElement"
-              ? ":element:" + elementIndex++
-              : ":node:" + otherNodeIndex++),
-          {
-            babelNode: path.node,
-            className:
-              path.node.type === "JSXElement"
-                ? findClassNameValue(path.node)
-                : undefined,
-            ...(path.node.type === "JSXElement"
-              ? {
-                  elementIndex: elementIndex - 1,
-                }
-              : {}),
-          },
-        );
+        const node = this.workspace.nodes.add(this.filePath + ":" + id++, {
+          babelNode: path.node,
+          className:
+            path.node.type === "JSXElement"
+              ? findClassNameValue(path.node)
+              : undefined,
+        });
 
         let babelParent;
         if (
@@ -154,12 +161,9 @@ export class File {
           return;
         }
 
-        const node = this.workspace.nodes.add(
-          this.filePath + ":node:" + otherNodeIndex++,
-          {
-            babelNode: path.node,
-          },
-        );
+        const node = this.workspace.nodes.add(this.filePath + ":" + id++, {
+          babelNode: path.node,
+        });
 
         nodeForBabelNode.set(path.node, {
           node,
@@ -199,6 +203,8 @@ export class File {
     this.node.append(
       toplevelStatementNodes.filter((node) => node.children.length > 0),
     );
+
+    this.updateElementIndexForNode();
 
     this.workspace.selectedNodeIDs.replace(
       [...selectedIDs].filter((id) => this.workspace.nodes.safeGet(id)),

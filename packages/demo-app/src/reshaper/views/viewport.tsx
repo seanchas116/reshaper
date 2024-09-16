@@ -14,7 +14,7 @@ export const Viewport = observer(() => {
   const getBoundingBoxes = (node: Node): Rect[] => {
     if (!iframe?.contentDocument) return [];
 
-    const elementIndex = node.data.elementIndex;
+    const elementIndex = editorState.file?.elementIndexForNode.get(node);
     if (elementIndex === undefined) return [];
 
     const fileName = editorState.filePath;

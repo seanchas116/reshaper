@@ -17,7 +17,6 @@ export type NodeData = {
   readonly order?: string;
   readonly babelNode: BabelNodeType; // original babel node: do not edit this directly
   readonly className?: string;
-  readonly elementIndex?: number;
 };
 
 export class Node extends BasicNode<NodeData> {

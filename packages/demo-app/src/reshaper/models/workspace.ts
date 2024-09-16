@@ -60,6 +60,6 @@ export class Workspace {
   }
 
   nodeForLocation(filePath: string, elementIndex: number): Node | undefined {
-    return this.nodes.safeGet(`${filePath}:element:${elementIndex}`);
+    return this.files.get(filePath)?.nodeForElementIndex.get(elementIndex);
   }
 }
