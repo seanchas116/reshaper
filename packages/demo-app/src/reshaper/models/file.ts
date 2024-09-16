@@ -44,7 +44,7 @@ export class File {
     this.code = code;
     this.babelNode = babelNode;
 
-    const selectedIndexPaths = this.getSelectedIndexPaths();
+    const selectedIDs = new Set(this.workspace.selectedNodeIDs);
 
     // tree structure:
     // file
@@ -195,10 +195,14 @@ export class File {
     for (const child of this.node.children) {
       child.delete();
     }
+
     this.node.append(
       toplevelStatementNodes.filter((node) => node.children.length > 0),
     );
-    this.applySelectedIndexPaths(selectedIndexPaths);
+
+    this.workspace.selectedNodeIDs.replace(
+      [...selectedIDs].filter((id) => this.workspace.nodes.safeGet(id)),
+    );
 
     for (const { node } of nodeForBabelNode.values()) {
       this.nodeForLocation.set(node.babelNode.loc!.start.index, node);
