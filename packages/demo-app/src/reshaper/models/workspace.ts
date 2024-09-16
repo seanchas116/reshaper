@@ -59,11 +59,7 @@ export class Workspace {
     return file;
   }
 
-  nodeForLocation(
-    filePath: string,
-    line: number,
-    column: number,
-  ): Node | undefined {
-    return this.nodes.safeGet(`${filePath}:${line}:${column}`);
+  nodeForLocation(filePath: string, elementIndex: number): Node | undefined {
+    return this.nodes.safeGet(`${filePath}:element:${elementIndex}`);
   }
 }

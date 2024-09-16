@@ -14,6 +14,7 @@ use swc_core::plugin::proxies::{PluginSourceMapProxy, TransformPluginProgramMeta
 // use swc_ecma_parser::{Syntax, TsConfig};
 
 pub struct TransformVisitor {
+    index: usize,
     source_map: PluginSourceMapProxy,
 }
 
@@ -30,12 +31,8 @@ impl VisitMut for TransformVisitor {
             _ => None,
         };
 
-        let loc = format!(
-            "{}:{}:{}",
-            name_str.unwrap_or("".to_string()),
-            pos.line,
-            pos.col.0
-        );
+        let loc = format!("{}:{}", name_str.unwrap_or("".to_string()), self.index);
+        self.index += 1;
 
         opening.attrs.push(JSXAttrOrSpread::JSXAttr(JSXAttr {
             span: opening.span,
@@ -76,6 +73,7 @@ pub fn process_transform(program: Program, metadata: TransformPluginProgramMetad
     // let src = metadata.source_map.source_file.get().src.clone();
     // let line_col_mapping = LineColMapping::new(src);
     program.fold_with(&mut as_folder(TransformVisitor {
+        index: 0,
         source_map: metadata.source_map,
     }))
 }

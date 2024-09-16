@@ -2,9 +2,9 @@
 
 exports[`test > test 1`] = `
 "export var x = /*#__PURE__*/ React.createElement("div", {
-    "data-reshaper-loc": "fixture/input.js:2:2"
+    "data-reshaper-loc": "fixture/input.js:0"
 }, /*#__PURE__*/ React.createElement("h1", {
-    "data-reshaper-loc": "fixture/input.js:3:4"
+    "data-reshaper-loc": "fixture/input.js:1"
 }, "Hello"));
 "
 `;

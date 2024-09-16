@@ -36,7 +36,7 @@ export class EditorState {
       : undefined;
   }
 
-  async loadFile(filePath: string, line: number, col: number) {
+  async loadFile(filePath: string, elementIndex: number) {
     let file = this.workspace.files.get(filePath);
     if (!file) {
       const code = await loadFile(filePath);
@@ -50,14 +50,14 @@ export class EditorState {
       this.workspace.loadFileAST(filePath, code, ast);
     }
 
-    const node = this.workspace.nodeForLocation(filePath, line, col);
+    const node = this.workspace.nodeForLocation(filePath, elementIndex);
     this.workspace.selectedNodeIDs.replace(node ? [node.id] : []);
     node?.expandAllAncestors();
     this.filePath = filePath;
   }
 
-  async revealLocation(filePath: string, line: number, col: number) {
-    this.loadFile(filePath, line, col);
+  async revealLocation(filePath: string, elementIndex: number) {
+    this.loadFile(filePath, elementIndex);
   }
 
   private saveFile = debounce(

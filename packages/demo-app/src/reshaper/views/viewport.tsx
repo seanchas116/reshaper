@@ -13,13 +13,12 @@ export const Viewport = observer(() => {
 
   const getBoundingBoxes = (node: Node): Rect[] => {
     if (!iframe?.contentDocument) return [];
-    if (!node.babelNode.loc) return [];
+
+    const elementIndex = node.data.elementIndex;
+    if (elementIndex === undefined) return [];
 
     const fileName = editorState.filePath;
-    const line = node.babelNode.loc.start.line;
-    const column = node.babelNode.loc.start.column;
-
-    const selector = `[data-reshaper-loc="${fileName}:${line}:${column}"]`;
+    const selector = `[data-reshaper-loc="${fileName}:${elementIndex}"]`;
 
     const elements = iframe.contentDocument.querySelectorAll(selector);
     const boundingBoxes: Rect[] = [];
@@ -80,12 +79,11 @@ export const Viewport = observer(() => {
             if (!location) {
               return;
             }
-            const [filePath, line, col] = location.split(":");
+            const [filePath, elemIndex] = location.split(":");
 
             const node = editorState.workspace.nodeForLocation(
               filePath,
-              +line,
-              +col,
+              +elemIndex,
             );
             editorState.hoveredNodeID = node?.id;
           })}
@@ -104,8 +102,8 @@ export const Viewport = observer(() => {
               return;
             }
 
-            const [filePath, line, col] = location.split(":");
-            editorState.revealLocation(filePath, +line, +col);
+            const [filePath, elemIndex] = location.split(":");
+            editorState.revealLocation(filePath, +elemIndex);
           })}
         />
       </div>

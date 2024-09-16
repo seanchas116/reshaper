@@ -5,10 +5,6 @@ import * as babel from "@babel/types";
 import deepEqual from "deep-equal";
 import { action } from "mobx";
 
-function locationID(filePath: string, location: babel.SourceLocation) {
-  return `${filePath}:${location.start.line}:${location.start.column}`;
-}
-
 function findClassNameValue(node: babel.JSXElement) {
   const className = node.openingElement.attributes.find(
     (attr): attr is babel.JSXAttribute => {
@@ -26,7 +22,7 @@ export class File {
   code: string;
   babelNode: babel.File;
 
-  readonly nodeForLocation = new Map<string, Node>();
+  readonly nodeForLocation = new Map<number, Node>();
 
   constructor(
     workspace: Workspace,
@@ -65,10 +61,12 @@ export class File {
       { node: Node; babelNodeForParent: BabelNodeType }
     >();
 
+    let otherNodeIndex = 0;
+
     const toplevelStatementNodes = this.babelNode.program.body.map(
       (statement) => {
         return this.workspace.nodes.add(
-          locationID(this.filePath, statement.loc!),
+          (this.filePath + ":statement:" + otherNodeIndex++).toString(),
           {
             babelNode: statement,
           },
@@ -83,19 +81,29 @@ export class File {
       });
     }
 
+    let elementIndex = 0;
+
     {
       const visitElementOrFragment = (
         path: NodePath<babel.JSXElement> | NodePath<babel.JSXFragment>,
       ) => {
         path.node.children;
         const node = this.workspace.nodes.add(
-          locationID(this.filePath, path.node.loc!),
+          this.filePath +
+            (path.node.type === "JSXElement"
+              ? ":element:" + elementIndex++
+              : ":node:" + otherNodeIndex++),
           {
             babelNode: path.node,
             className:
               path.node.type === "JSXElement"
                 ? findClassNameValue(path.node)
                 : undefined,
+            ...(path.node.type === "JSXElement"
+              ? {
+                  elementIndex: elementIndex - 1,
+                }
+              : {}),
           },
         );
 
@@ -147,7 +155,7 @@ export class File {
         }
 
         const node = this.workspace.nodes.add(
-          locationID(this.filePath, path.node.loc!),
+          this.filePath + ":node:" + otherNodeIndex++,
           {
             babelNode: path.node,
           },
@@ -193,10 +201,7 @@ export class File {
     this.applySelectedIndexPaths(selectedIndexPaths);
 
     for (const { node } of nodeForBabelNode.values()) {
-      this.nodeForLocation.set(
-        locationID(this.filePath, node.babelNode.loc!),
-        node,
-      );
+      this.nodeForLocation.set(node.babelNode.loc!.start.index, node);
     }
   }
 
@@ -241,9 +246,7 @@ export class File {
 
         // replace className attribute
 
-        const node = this.nodeForLocation.get(
-          locationID(this.filePath, path.node.loc!),
-        );
+        const node = this.nodeForLocation.get(path.node.loc!.start.index);
         if (!node) {
           return;
         }
