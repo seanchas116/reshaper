@@ -163,6 +163,9 @@ export class File {
 
         const node = this.workspace.nodes.add(this.filePath + ":" + id++, {
           babelNode: path.node,
+          ...(path.node.type === "JSXText"
+            ? { text: path.node.value }
+            : undefined),
         });
 
         nodeForBabelNode.set(path.node, {

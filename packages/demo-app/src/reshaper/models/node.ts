@@ -18,6 +18,7 @@ export type NodeData = {
   readonly order?: string;
   readonly babelNode: BabelNodeType; // original babel node: do not edit this directly
   readonly className?: string;
+  readonly text?: string;
 };
 
 export class Node extends BasicNode<NodeData> {
@@ -53,11 +54,22 @@ export class Node extends BasicNode<NodeData> {
     );
   }
 
+  get text(): string | undefined {
+    return this.data.text;
+  }
+
+  set text(text: string | undefined) {
+    this.data = {
+      ...this.data,
+      text,
+    };
+  }
+
   get name(): string {
     const babelNode = this.babelNode;
 
     if (babelNode.type === "JSXText") {
-      return babelNode.value;
+      return this.text ?? "";
     }
 
     if (babelNode.type === "JSXElement") {
@@ -70,6 +82,12 @@ export class Node extends BasicNode<NodeData> {
 
   toModifiedBabelNode(): BabelNodeType {
     const original = this.babelNode;
+
+    if (original.type === "JSXText") {
+      const cloned = babel.cloneNode(original);
+      cloned.value = this.text ?? "";
+      return cloned;
+    }
 
     if (original.type === "JSXElement" || original.type === "JSXFragment") {
       const cloned = babel.cloneNode(original, true);

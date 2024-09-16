@@ -10,30 +10,45 @@ const NodeInspector = observer(() => {
   if (!node) return null;
 
   const babelNode = node.babelNode;
-  if (babelNode.type !== "JSXElement") return null;
 
-  return (
-    <div className="p-3 text-xs">
-      <div className="mb-2 flex items-center justify-between">
-        <h2>
-          {babelNode.openingElement.name.type === "JSXIdentifier"
-            ? babelNode.openingElement.name.name
-            : "Unknown"}
-        </h2>
-        <div className="font-mono font-[10px] text-gray-400">
-          {path.basename(editorState.filePath)}:{babelNode.loc?.start.line}:
-          {babelNode.loc?.start.column}
-        </div>
+  if (babelNode.type === "JSXText") {
+    return (
+      <div className="p-3 text-xs">
+        <textarea
+          className="block h-32 w-full rounded bg-gray-100 p-2 font-mono text-xs"
+          value={node.text}
+          onChange={(e) => {
+            node.text = e.target.value;
+          }}
+        />
       </div>
-      <textarea
-        className="block h-32 w-full rounded bg-gray-100 p-2 font-mono text-xs"
-        value={node.className}
-        onChange={(e) => {
-          node.className = e.target.value;
-        }}
-      />
-    </div>
-  );
+    );
+  }
+
+  if (babelNode.type === "JSXElement") {
+    return (
+      <div className="p-3 text-xs">
+        <div className="mb-2 flex items-center justify-between">
+          <h2>
+            {babelNode.openingElement.name.type === "JSXIdentifier"
+              ? babelNode.openingElement.name.name
+              : "Unknown"}
+          </h2>
+          <div className="font-mono font-[10px] text-gray-400">
+            {path.basename(editorState.filePath)}:{babelNode.loc?.start.line}:
+            {babelNode.loc?.start.column}
+          </div>
+        </div>
+        <textarea
+          className="block h-32 w-full rounded bg-gray-100 p-2 font-mono text-xs"
+          value={node.className}
+          onChange={(e) => {
+            node.className = e.target.value;
+          }}
+        />
+      </div>
+    );
+  }
 });
 
 export const Inspector = () => {
