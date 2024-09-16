@@ -1,6 +1,6 @@
 import { ReactNode, MouseEvent } from "react";
 import { NodeTreeRow } from "./node-tree-row";
-import { makeObservable, computed, observable } from "mobx";
+import { makeObservable, computed } from "mobx";
 import React from "react";
 import { TreeViewItem } from "@/reshaper/components/treeview/tree-view-item";
 import { EditorState } from "@/reshaper/state/editor-state";
@@ -154,6 +154,7 @@ export class NodeTreeViewItem extends TreeViewItem {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   showContextMenu(e: MouseEvent): void {
     // TODO
     // showNodeContextMenu(this.editorState, this.node, e);

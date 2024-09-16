@@ -29,6 +29,7 @@ export function ClickToEdit({
       inputRef.current?.focus();
       inputRef.current?.select();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing]);
 
   return (

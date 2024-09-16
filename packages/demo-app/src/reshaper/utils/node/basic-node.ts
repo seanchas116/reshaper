@@ -1,6 +1,5 @@
 import { computed, makeObservable, observable } from "mobx";
 import { InstanceManager } from "./instance-manager";
-import { lerp } from "../math";
 import { generateKeyBetween, generateNKeysBetween } from "fractional-indexing";
 
 export type BasicNodeData = {

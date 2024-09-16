@@ -75,6 +75,7 @@ export abstract class TreeViewItem {
       return children[0];
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let current: TreeViewItem = this;
     for (;;) {
       const next = current.nextSibling;
@@ -94,7 +95,7 @@ export abstract class TreeViewItem {
     }
 
     const sortedItems = [...items].sort((a, b) =>
-      compareIndexPath(a.indexPath, b.indexPath)
+      compareIndexPath(a.indexPath, b.indexPath),
     );
 
     const first = sortedItems[0];

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useEditorState } from "../state/editor-state";
 import { observer } from "mobx-react-lite";
 import { Rect } from "paintvec";

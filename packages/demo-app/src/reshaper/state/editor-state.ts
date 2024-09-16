@@ -37,8 +37,7 @@ export class EditorState {
   }
 
   async loadFile(filePath: string) {
-    let file = this.workspace.files.get(filePath);
-    if (!file) {
+    if (!this.workspace.files.get(filePath)) {
       const code = await loadFile(filePath);
 
       const ast = parse(code, {
