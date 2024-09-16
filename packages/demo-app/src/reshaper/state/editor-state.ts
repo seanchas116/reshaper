@@ -36,7 +36,7 @@ export class EditorState {
       : undefined;
   }
 
-  async loadFile(filePath: string, elementIndex: number) {
+  async loadFile(filePath: string) {
     let file = this.workspace.files.get(filePath);
     if (!file) {
       const code = await loadFile(filePath);
@@ -46,18 +46,22 @@ export class EditorState {
         plugins: ["typescript", "jsx"],
       });
 
-      this.filePath = filePath;
-      this.workspace.loadFileAST(filePath, code, ast);
+      runInAction(() => {
+        this.filePath = filePath;
+        this.workspace.loadFileAST(filePath, code, ast);
+      });
     }
-
-    const node = this.workspace.nodeForLocation(filePath, elementIndex);
-    this.workspace.selectedNodeIDs.replace(node ? [node.id] : []);
-    node?.expandAllAncestors();
-    this.filePath = filePath;
   }
 
   async revealLocation(filePath: string, elementIndex: number) {
-    this.loadFile(filePath, elementIndex);
+    await this.loadFile(filePath);
+
+    runInAction(() => {
+      const node = this.workspace.nodeForLocation(filePath, elementIndex);
+      this.workspace.selectedNodeIDs.replace(node ? [node.id] : []);
+      node?.expandAllAncestors();
+      this.filePath = filePath;
+    });
   }
 
   private saveFile = debounce(

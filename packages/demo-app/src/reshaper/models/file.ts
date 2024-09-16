@@ -22,10 +22,10 @@ export class File {
   code: string;
   babelNode: babel.File;
 
-  readonly nodeForLocation = new Map<number, Node>();
-
   readonly nodeForElementIndex = new Map<number, Node>();
   readonly elementIndexForNode = new Map<Node, number>();
+
+  private readonly nodeForSourceIndex = new Map<number, Node>();
 
   constructor(
     workspace: Workspace,
@@ -211,7 +211,7 @@ export class File {
     );
 
     for (const { node } of nodeForBabelNode.values()) {
-      this.nodeForLocation.set(node.babelNode.loc!.start.index, node);
+      this.nodeForSourceIndex.set(node.babelNode.loc!.start.index, node);
     }
   }
 
@@ -256,7 +256,7 @@ export class File {
 
         // replace className attribute
 
-        const node = this.nodeForLocation.get(path.node.loc!.start.index);
+        const node = this.nodeForSourceIndex.get(path.node.loc!.start.index);
         if (!node) {
           return;
         }
