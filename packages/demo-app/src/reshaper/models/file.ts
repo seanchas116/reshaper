@@ -23,6 +23,8 @@ export class File {
   readonly node: Node;
   readonly babelNode: babel.File;
 
+  readonly nodeForBabelNode = new Map<babel.Node, Node>();
+
   delete() {
     this.node.delete();
   }
@@ -167,5 +169,51 @@ export class File {
     this.node.append(
       toplevelStatementNodes.filter((node) => node.children.length > 0),
     );
+
+    for (const { node } of nodeForBabelNode.values()) {
+      this.nodeForBabelNode.set(node.babelNode, node);
+    }
+  }
+
+  toModifiedAST(): babel.File {
+    const newAST = babel.cloneNode(this.babelNode, true);
+
+    traverse(newAST, {
+      JSXElement: (path) => {
+        // TODO: reorder children
+
+        // replace className attribute
+
+        const node = this.nodeForBabelNode.get(path.node);
+        if (!node) {
+          return;
+        }
+
+        const className = node.className;
+        if (className === undefined) {
+          return;
+        }
+
+        const classNameAttr = path.node.openingElement.attributes.find(
+          (attr): attr is babel.JSXAttribute => {
+            return (
+              attr.type === "JSXAttribute" && attr.name.name === "className"
+            );
+          },
+        );
+        if (classNameAttr) {
+          classNameAttr.value = babel.stringLiteral(className);
+        } else {
+          path.node.openingElement.attributes.push(
+            babel.jsxAttribute(
+              babel.jsxIdentifier("className"),
+              babel.stringLiteral(className),
+            ),
+          );
+        }
+      },
+    });
+
+    return newAST;
   }
 }
