@@ -23,7 +23,7 @@ export class File {
   readonly node: Node;
   readonly babelNode: babel.File;
 
-  readonly nodeForBabelNode = new Map<babel.Node, Node>();
+  readonly nodeForLocation = new Map<string, Node>();
 
   delete() {
     this.node.delete();
@@ -171,7 +171,10 @@ export class File {
     );
 
     for (const { node } of nodeForBabelNode.values()) {
-      this.nodeForBabelNode.set(node.babelNode, node);
+      this.nodeForLocation.set(
+        locationID(this.filePath, node.babelNode.loc!),
+        node,
+      );
     }
   }
 
@@ -184,7 +187,9 @@ export class File {
 
         // replace className attribute
 
-        const node = this.nodeForBabelNode.get(path.node);
+        const node = this.nodeForLocation.get(
+          locationID(this.filePath, path.node.loc!),
+        );
         if (!node) {
           return;
         }

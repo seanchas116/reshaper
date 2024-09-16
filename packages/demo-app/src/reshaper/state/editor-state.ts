@@ -1,13 +1,20 @@
 import { createContext, useContext } from "react";
-import { loadFile } from "../actions/actions";
+import { loadFile, saveFile } from "../actions/actions";
 import { makeObservable, observable } from "mobx";
 import { parse } from "@babel/parser";
 import { Workspace } from "../models/workspace";
 import { Node } from "../models/node";
+import { File } from "../models/file";
+import generate from "@babel/generator";
+import debounce from "just-debounce-it";
 
 export class EditorState {
   constructor() {
     makeObservable(this);
+
+    this.workspace.nodeStore.data.observe_(() => {
+      this.saveFile();
+    });
   }
 
   readonly workspace = new Workspace();
@@ -16,8 +23,11 @@ export class EditorState {
   @observable pathname: string = "";
   @observable hoveredNodeID: string | undefined = undefined;
 
+  get file(): File | undefined {
+    return this.workspace.files.get(this.filePath);
+  }
   get fileNode(): Node | undefined {
-    return this.workspace.files.get(this.filePath)?.node;
+    return this.file?.node;
   }
 
   get hoveredNode() {
@@ -49,6 +59,18 @@ export class EditorState {
   async revealLocation(filePath: string, line: number, col: number) {
     this.loadFile(filePath, line, col);
   }
+
+  saveFile = debounce(async () => {
+    const file = this.file;
+    if (!file) {
+      return;
+    }
+    const ast = file.toModifiedAST();
+    const code = generate(ast).code;
+    console.log(code);
+
+    await saveFile(file.filePath, generate(ast).code);
+  }, 100);
 }
 
 const EditorStateContext = createContext<EditorState>(new EditorState());
