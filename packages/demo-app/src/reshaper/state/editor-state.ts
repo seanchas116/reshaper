@@ -2,7 +2,6 @@ import { createContext, useContext } from "react";
 import { loadFile } from "../actions/actions";
 import { makeObservable, observable } from "mobx";
 import { parse } from "@babel/parser";
-import { Rect } from "paintvec";
 import { Workspace } from "../models/workspace";
 import { Node } from "../models/node";
 
@@ -18,7 +17,7 @@ export class EditorState {
   @observable hoveredNodeID: string | undefined = undefined;
 
   get fileNode(): Node | undefined {
-    return this.workspace.fileNodes.get(this.filePath);
+    return this.workspace.files.get(this.filePath)?.node;
   }
 
   get hoveredNode() {
@@ -28,8 +27,8 @@ export class EditorState {
   }
 
   async loadFile(filePath: string, line: number, col: number) {
-    let fileNode = this.workspace.fileNodes.get(filePath);
-    if (!fileNode) {
+    let file = this.workspace.files.get(filePath);
+    if (!file) {
       const file = await loadFile(filePath);
 
       const ast = parse(file, {
@@ -38,7 +37,7 @@ export class EditorState {
       });
 
       this.filePath = filePath;
-      fileNode = this.workspace.loadFileAST(filePath, ast);
+      this.workspace.loadFileAST(filePath, ast);
     }
 
     const node = this.workspace.nodeForLocation(filePath, line, col);
