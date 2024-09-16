@@ -48,14 +48,15 @@ export class Workspace {
 
   readonly files = new Map<string, File>();
 
-  loadFileAST(filePath: string, babelFile: babel.File) {
-    const oldFile = this.files.get(filePath);
-    if (oldFile) {
-      oldFile.delete();
+  loadFileAST(filePath: string, code: string, babelFile: babel.File) {
+    let file = this.files.get(filePath);
+    if (!file) {
+      file = new File(this, filePath, code, babelFile);
+      this.files.set(filePath, file);
+    } else {
+      file.load(code, babelFile);
     }
-
-    const file = new File(this, filePath, babelFile);
-    this.files.set(filePath, file);
+    return file;
   }
 
   nodeForLocation(

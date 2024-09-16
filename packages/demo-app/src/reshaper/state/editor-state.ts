@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
-import { loadFile, saveFile } from "../actions/actions";
-import { makeObservable, observable } from "mobx";
+import { formatCode, loadFile, saveFile } from "../actions/actions";
+import { action, makeObservable, observable, runInAction } from "mobx";
 import { parse } from "@babel/parser";
 import { Workspace } from "../models/workspace";
 import { Node } from "../models/node";
@@ -39,15 +39,15 @@ export class EditorState {
   async loadFile(filePath: string, line: number, col: number) {
     let file = this.workspace.files.get(filePath);
     if (!file) {
-      const file = await loadFile(filePath);
+      const code = await loadFile(filePath);
 
-      const ast = parse(file, {
+      const ast = parse(code, {
         sourceType: "module",
         plugins: ["typescript", "jsx"],
       });
 
       this.filePath = filePath;
-      this.workspace.loadFileAST(filePath, ast);
+      this.workspace.loadFileAST(filePath, code, ast);
     }
 
     const node = this.workspace.nodeForLocation(filePath, line, col);
@@ -60,20 +60,38 @@ export class EditorState {
     this.loadFile(filePath, line, col);
   }
 
-  saveFile = debounce(async () => {
-    const file = this.file;
-    if (!file) {
-      return;
-    }
-    const ast = file.toModifiedAST();
-    const code = generate(ast, {
-      retainLines: true,
-      retainFunctionParens: true,
-    }).code;
-    console.log(code);
+  private saveFile = debounce(
+    action(async () => {
+      const file = this.file;
+      if (!file) {
+        return;
+      }
+      const ast = file.toModifiedAST();
+      const code = await formatCode(
+        generate(ast, {
+          retainLines: true,
+          retainFunctionParens: true,
+        }).code,
+      );
 
-    await saveFile(file.filePath, generate(ast).code);
-  }, 100);
+      if (file.code === code) {
+        return;
+      }
+
+      runInAction(() => {
+        file.load(
+          code,
+          parse(code, {
+            sourceType: "module",
+            plugins: ["typescript", "jsx"],
+          }),
+        );
+      });
+
+      await saveFile(file.filePath, code);
+    }),
+    100,
+  );
 }
 
 const EditorStateContext = createContext<EditorState>(new EditorState());

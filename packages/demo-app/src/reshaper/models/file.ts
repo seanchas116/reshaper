@@ -2,6 +2,7 @@ import traverse, { NodePath } from "@babel/traverse";
 import { BabelNodeType, Node } from "./node";
 import { Workspace } from "./workspace";
 import * as babel from "@babel/types";
+import deepEqual from "deep-equal";
 
 function locationID(filePath: string, location: babel.SourceLocation) {
   return `${filePath}:${location.start.line}:${location.start.column}`;
@@ -21,17 +22,29 @@ export class File {
   readonly workspace: Workspace;
   readonly filePath: string;
   readonly node: Node;
-  readonly babelNode: babel.File;
+  code: string;
+  babelNode: babel.File;
 
   readonly nodeForLocation = new Map<string, Node>();
 
-  delete() {
-    this.node.delete();
-  }
-
-  constructor(workspace: Workspace, filePath: string, babelNode: babel.File) {
+  constructor(
+    workspace: Workspace,
+    filePath: string,
+    code: string,
+    babelNode: babel.File,
+  ) {
     this.workspace = workspace;
     this.filePath = filePath;
+    this.code = code;
+    this.babelNode = babelNode;
+    this.node = this.workspace.nodes.add(this.filePath, {
+      babelNode: this.babelNode,
+    });
+    this.load(code, babelNode);
+  }
+
+  load(code: string, babelNode: babel.File) {
+    this.code = code;
     this.babelNode = babelNode;
 
     // tree structure:
@@ -163,12 +176,19 @@ export class File {
       }
     }
 
-    this.node = this.workspace.nodes.add(this.filePath, {
-      babelNode: this.babelNode,
-    });
+    this.node.data = {
+      ...this.node.data,
+      babelNode: babelNode,
+    };
+
+    const selectedIndexPaths = this.getSelectedIndexPaths();
+    for (const child of this.node.children) {
+      child.delete();
+    }
     this.node.append(
       toplevelStatementNodes.filter((node) => node.children.length > 0),
     );
+    this.applySelectedIndexPaths(selectedIndexPaths);
 
     for (const { node } of nodeForBabelNode.values()) {
       this.nodeForLocation.set(
@@ -176,6 +196,36 @@ export class File {
         node,
       );
     }
+  }
+
+  private getSelectedIndexPaths(): readonly number[][] {
+    const result: number[][] = [];
+    const visit = (node: Node) => {
+      if (node.selected) {
+        result.push(node.indexPath);
+      }
+      for (const child of node.children) {
+        visit(child);
+      }
+    };
+    return result;
+  }
+
+  private applySelectedIndexPaths(indexPaths: readonly number[][]) {
+    const selectedNodeIDs = new Set<string>();
+    const visit = (node: Node) => {
+      const shouldSelect = indexPaths.some((indexPath) => {
+        return deepEqual(node.indexPath, indexPath);
+      });
+      if (shouldSelect) {
+        selectedNodeIDs.add(node.id);
+      }
+
+      for (const child of node.children) {
+        visit(child);
+      }
+    };
+    this.workspace.selectedNodeIDs.replace(selectedNodeIDs);
   }
 
   toModifiedAST(): babel.File {

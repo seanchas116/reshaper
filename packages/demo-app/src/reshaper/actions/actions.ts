@@ -13,5 +13,5 @@ export async function loadFile(filePath: string) {
 }
 
 export async function saveFile(filePath: string, content: string) {
-  return fs.writeFile(filePath, await formatCode(content), "utf-8");
+  await fs.writeFile(filePath, content, "utf-8");
 }
