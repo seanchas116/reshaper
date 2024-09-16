@@ -74,19 +74,7 @@ export class EditorState {
         }).code,
       );
 
-      if (file.code === code) {
-        return;
-      }
-
-      runInAction(() => {
-        file.load(
-          code,
-          parse(code, {
-            sourceType: "module",
-            plugins: ["typescript", "jsx"],
-          }),
-        );
-      });
+      // TODO: update element indexes when structure changes
 
       await saveFile(file.filePath, code);
     }),
