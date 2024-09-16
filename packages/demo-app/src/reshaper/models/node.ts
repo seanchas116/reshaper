@@ -2,6 +2,7 @@ import { computed, makeObservable } from "mobx";
 import { Workspace } from "./workspace";
 import * as babel from "@babel/types";
 import { BasicNode } from "../utils/node/basic-node";
+import traverse from "@babel/traverse";
 
 export type BabelNodeType =
   | babel.File
@@ -67,32 +68,96 @@ export class Node extends BasicNode<NodeData> {
     return "";
   }
 
-  get modifiedBabelNode(): babel.Node {
-    const babelNode = this.babelNode;
-    if (babelNode.type !== "JSXElement") return babelNode;
+  toModifiedBabelNode(): BabelNodeType {
+    const original = this.babelNode;
 
-    // replace className if exists
-    const className = this.className;
-    if (!className) {
-      return babelNode;
-    }
+    if (original.type === "JSXElement" || original.type === "JSXFragment") {
+      const cloned = babel.cloneNode(original, true);
 
-    const newAttributes = babelNode.openingElement.attributes.map((attr) => {
-      if (attr.type === "JSXAttribute" && attr.name.name === "className") {
-        return babel.jsxAttribute(
-          babel.jsxIdentifier("className"),
-          babel.stringLiteral(className),
-        );
+      if (cloned.type === "JSXElement") {
+        const className = this.className;
+        if (className) {
+          const classNameAttr = cloned.openingElement.attributes.find(
+            (attr): attr is babel.JSXAttribute => {
+              return (
+                attr.type === "JSXAttribute" && attr.name.name === "className"
+              );
+            },
+          );
+          if (classNameAttr) {
+            classNameAttr.value = babel.stringLiteral(className);
+          } else {
+            cloned.openingElement.attributes.push(
+              babel.jsxAttribute(
+                babel.jsxIdentifier("className"),
+                babel.stringLiteral(className),
+              ),
+            );
+          }
+        }
       }
-      return attr;
-    });
 
-    return {
-      ...babelNode,
-      openingElement: {
-        ...babelNode.openingElement,
-        attributes: newAttributes,
-      },
-    };
+      cloned.children = this.children.map(
+        (child) =>
+          child.toModifiedBabelNode() as
+            | babel.JSXText
+            | babel.JSXExpressionContainer
+            | babel.JSXSpreadChild
+            | babel.JSXElement
+            | babel.JSXFragment,
+      );
+      return cloned;
+    } else if (original.type === "File") {
+      const cloned = babel.cloneNode(original, true);
+
+      const childForIndex = new Map<number, BabelNodeType>();
+      for (const child of this.children) {
+        const index = child.babelNode.loc?.start.index;
+        if (index !== undefined) {
+          childForIndex.set(index, child.toModifiedBabelNode());
+        }
+      }
+
+      cloned.program.body = cloned.program.body.map((node) => {
+        if (node.loc) {
+          const newChild = childForIndex.get(node.loc.start.index);
+          if (newChild) {
+            return newChild as babel.Statement;
+          }
+        }
+        return node;
+      });
+
+      return cloned;
+    } else {
+      const cloned = babel.cloneNode(original, true);
+
+      const childForIndex = new Map<number, BabelNodeType>();
+      for (const child of this.children) {
+        const index = child.babelNode.loc?.start.index;
+        if (index !== undefined) {
+          childForIndex.set(index, child.toModifiedBabelNode());
+        }
+      }
+
+      // replace inner JSXElement/JSXFragment
+      traverse(cloned, {
+        JSXElement: (path) => {
+          const newChild = childForIndex.get(path.node.loc!.start.index);
+          if (newChild) {
+            path.replaceWith(newChild);
+          }
+        },
+        JSXFragment: (path) => {
+          const newChild = childForIndex.get(path.node.loc!.start.index);
+          if (newChild) {
+            path.replaceWith(newChild);
+          }
+        },
+        noScope: true,
+      });
+
+      return cloned;
+    }
   }
 }

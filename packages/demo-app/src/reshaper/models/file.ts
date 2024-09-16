@@ -248,44 +248,6 @@ export class File {
   }
 
   toModifiedAST(): babel.File {
-    const newAST = babel.cloneNode(this.babelNode, true);
-
-    traverse(newAST, {
-      JSXElement: (path) => {
-        // TODO: reorder children
-
-        // replace className attribute
-
-        const node = this.nodeForSourceIndex.get(path.node.loc!.start.index);
-        if (!node) {
-          return;
-        }
-
-        const className = node.className;
-        if (className === undefined) {
-          return;
-        }
-
-        const classNameAttr = path.node.openingElement.attributes.find(
-          (attr): attr is babel.JSXAttribute => {
-            return (
-              attr.type === "JSXAttribute" && attr.name.name === "className"
-            );
-          },
-        );
-        if (classNameAttr) {
-          classNameAttr.value = babel.stringLiteral(className);
-        } else {
-          path.node.openingElement.attributes.push(
-            babel.jsxAttribute(
-              babel.jsxIdentifier("className"),
-              babel.stringLiteral(className),
-            ),
-          );
-        }
-      },
-    });
-
-    return newAST;
+    return this.node.toModifiedBabelNode() as babel.File;
   }
 }
