@@ -3,6 +3,7 @@ import { BabelNodeType, Node } from "./node";
 import { Workspace } from "./workspace";
 import * as babel from "@babel/types";
 import deepEqual from "deep-equal";
+import { action } from "mobx";
 
 function locationID(filePath: string, location: babel.SourceLocation) {
   return `${filePath}:${location.start.line}:${location.start.column}`;
@@ -43,9 +44,11 @@ export class File {
     this.load(code, babelNode);
   }
 
-  load(code: string, babelNode: babel.File) {
+  @action load(code: string, babelNode: babel.File) {
     this.code = code;
     this.babelNode = babelNode;
+
+    const selectedIndexPaths = this.getSelectedIndexPaths();
 
     // tree structure:
     // file
@@ -181,7 +184,6 @@ export class File {
       babelNode: babelNode,
     };
 
-    const selectedIndexPaths = this.getSelectedIndexPaths();
     for (const child of this.node.children) {
       child.delete();
     }
@@ -208,6 +210,7 @@ export class File {
         visit(child);
       }
     };
+    visit(this.node);
     return result;
   }
 
@@ -225,6 +228,7 @@ export class File {
         visit(child);
       }
     };
+    visit(this.node);
     this.workspace.selectedNodeIDs.replace(selectedNodeIDs);
   }
 
