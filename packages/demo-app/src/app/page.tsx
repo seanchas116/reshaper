@@ -19,6 +19,7 @@ import Link from "next/link";
 import { reshaper } from "@/reshaper/hoc";
 
 // TODO: Add reshaper HOC automatically in SWC plugin
+// TODO: Add reshaper HOC automatically in SWC plugin
 export default reshaper(function Portfolio() {
   return (
     <div className="flex min-h-screen flex-col">

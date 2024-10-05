@@ -7,6 +7,7 @@ import { Node } from "../models/node";
 import { File } from "../models/file";
 import generate from "@babel/generator";
 import debounce from "just-debounce-it";
+import { ViewportState } from "./viewport-state";
 
 export class EditorState {
   constructor() {
@@ -14,10 +15,12 @@ export class EditorState {
 
     this.workspace.nodeStore.data.observe_(() => {
       this.saveFile();
+      this.viewportState.sendEdit();
     });
   }
 
   readonly workspace = new Workspace();
+  readonly viewportState = new ViewportState(this);
 
   @observable filePath: string = "";
   @observable pathname: string = "";

@@ -3,10 +3,9 @@
 import { Workspace } from "./models/workspace";
 
 function receiveEdit(workspace: Workspace) {
-  console.log("TODO: receive edit...");
+  console.log("TODO: receive edit...", workspace);
 }
 
-// @ts-ignore
 window.__reshaperReceiveEdit = receiveEdit;
 
 export const EditReceiver: React.FC<{
