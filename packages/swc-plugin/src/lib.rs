@@ -1,7 +1,8 @@
 use swc_core::common::FileName::Real;
 use swc_core::common::SourceMapper;
 use swc_core::ecma::ast::{
-    Ident, JSXAttr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue, JSXElement, Lit, Str,
+    Ident, JSXAttr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue, JSXElement, JSXExprContainer,
+    JSXFragment, JSXSpreadChild, JSXText, Lit, Str,
 };
 use swc_core::ecma::visit::VisitMutWith;
 use swc_core::ecma::{
@@ -14,12 +15,34 @@ use swc_core::plugin::proxies::{PluginSourceMapProxy, TransformPluginProgramMeta
 // use swc_ecma_parser::{Syntax, TsConfig};
 
 pub struct TransformVisitor {
-    index: usize,
+    id: usize, // current index for JSXElementChild node
     source_map: PluginSourceMapProxy,
 }
 
 impl VisitMut for TransformVisitor {
+    fn visit_mut_jsx_text(&mut self, n: &mut JSXText) {
+        self.id += 1;
+        n.visit_mut_children_with(self);
+    }
+
+    fn visit_mut_jsx_expr_container(&mut self, n: &mut JSXExprContainer) {
+        self.id += 1;
+        n.visit_mut_children_with(self);
+    }
+
+    fn visit_mut_jsx_spread_child(&mut self, n: &mut JSXSpreadChild) {
+        self.id += 1;
+        n.visit_mut_children_with(self);
+    }
+
+    fn visit_mut_jsx_fragment(&mut self, n: &mut JSXFragment) {
+        self.id += 1;
+        n.visit_mut_children_with(self);
+    }
+
     fn visit_mut_jsx_element(&mut self, jsx: &mut JSXElement) {
+        self.id += 1;
+
         let mut opening = jsx.opening.clone();
 
         let pos = self.source_map.lookup_char_pos(opening.span.lo);
@@ -31,8 +54,7 @@ impl VisitMut for TransformVisitor {
             _ => None,
         };
 
-        let loc = format!("{}:{}", name_str.unwrap_or("".to_string()), self.index);
-        self.index += 1;
+        let loc = format!("{}:{}", name_str.unwrap_or("".to_string()), self.id);
 
         opening.attrs.push(JSXAttrOrSpread::JSXAttr(JSXAttr {
             span: opening.span,
@@ -73,7 +95,7 @@ pub fn process_transform(program: Program, metadata: TransformPluginProgramMetad
     // let src = metadata.source_map.source_file.get().src.clone();
     // let line_col_mapping = LineColMapping::new(src);
     program.fold_with(&mut as_folder(TransformVisitor {
-        index: 0,
+        id: 0,
         source_map: metadata.source_map,
     }))
 }

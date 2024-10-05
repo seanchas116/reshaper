@@ -69,7 +69,6 @@ export class EditorState {
       if (!file) {
         return;
       }
-      file.updateElementIndexForNode();
       const ast = file.toModifiedAST();
       const code = await formatCode(
         generate(ast, {
