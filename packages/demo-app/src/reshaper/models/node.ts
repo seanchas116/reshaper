@@ -21,6 +21,10 @@ export type NodeData = {
   readonly text?: string;
 };
 
+export type RecursiveNodeData = NodeData & {
+  readonly children: RecursiveNodeData[];
+};
+
 export class Node extends BasicNode<NodeData> {
   constructor(workspace: Workspace, id: string) {
     super(workspace.nodes, workspace.selectedNodeIDs, id);
@@ -177,5 +181,12 @@ export class Node extends BasicNode<NodeData> {
 
       return cloned;
     }
+  }
+
+  toRecursiveData(): RecursiveNodeData {
+    return {
+      ...this.data,
+      children: this.children.map((child) => child.toRecursiveData()),
+    };
   }
 }
