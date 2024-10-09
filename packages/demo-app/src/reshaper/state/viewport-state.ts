@@ -1,8 +1,7 @@
 import { computed, makeObservable, observable } from "mobx";
 import { EditorState } from "./editor-state";
 import { Rect } from "paintvec";
-import { Node } from "../models/node";
-import { Workspace } from "../models/workspace";
+import { Node, RecursiveNodeData } from "../models/node";
 
 export class ViewportState {
   constructor(editorState: EditorState) {
@@ -87,15 +86,29 @@ export class ViewportState {
   }
 
   sendEdit() {
+    const initialStructures = new Map<string, RecursiveNodeData>();
+    const newStructures = new Map<string, RecursiveNodeData>();
+    for (const file of this.editorState.workspace.files.values()) {
+      for (const [key, value] of file.initialStructures) {
+        initialStructures.set(key, value);
+      }
+      for (const [key, value] of file.getStructures()) {
+        newStructures.set(key, value);
+      }
+    }
+
     const receive = this.iframe?.contentWindow?.__reshaperReceiveEdit;
     if (receive) {
-      receive(this.editorState.workspace);
+      receive(initialStructures, newStructures);
     }
   }
 }
 
 declare global {
   interface Window {
-    __reshaperReceiveEdit?: (workspace: Workspace) => void;
+    __reshaperReceiveEdit?: (
+      initialStructures: Map<string, RecursiveNodeData>,
+      newStructures: Map<string, RecursiveNodeData>,
+    ) => void;
   }
 }

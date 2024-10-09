@@ -1,5 +1,5 @@
 import traverse, { NodePath } from "@babel/traverse";
-import { BabelNodeType, Node } from "./node";
+import { BabelNodeType, Node, RecursiveNodeData } from "./node";
 import { Workspace } from "./workspace";
 import * as babel from "@babel/types";
 import deepEqual from "deep-equal";
@@ -24,6 +24,8 @@ export class File {
 
   readonly nodeForElementIndex = new Map<number, Node>();
   readonly elementIndexForNode = new Map<Node, number>();
+
+  initialStructures = new Map<string, RecursiveNodeData>();
 
   constructor(
     workspace: Workspace,
@@ -198,6 +200,8 @@ export class File {
       toplevelStatementNodes.filter((node) => node.children.length > 0),
     );
 
+    this.initialStructures = this.getStructures();
+
     this.workspace.selectedNodeIDs.replace(
       [...selectedIDs].filter((id) => this.workspace.nodes.safeGet(id)),
     );
@@ -237,5 +241,33 @@ export class File {
 
   toModifiedAST(): babel.File {
     return this.node.toModifiedBabelNode() as babel.File;
+  }
+
+  getStructures(): Map<string, RecursiveNodeData> {
+    const ret = new Map<string, RecursiveNodeData>();
+
+    const visit = (
+      node: RecursiveNodeData,
+      parent: RecursiveNodeData | undefined,
+    ) => {
+      if (
+        // is a element/fragment and parent is not a element/fragment
+        (node.babelNode.type === "JSXElement" ||
+          node.babelNode.type === "JSXFragment") &&
+        !(
+          parent?.babelNode.type === "JSXElement" ||
+          parent?.babelNode.type === "JSXFragment"
+        )
+      ) {
+        ret.set(node.id, node);
+      }
+
+      for (const child of node.children) {
+        visit(child, node);
+      }
+    };
+    visit(this.node.toRecursiveData(), undefined);
+
+    return ret;
   }
 }

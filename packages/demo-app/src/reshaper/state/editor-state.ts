@@ -14,7 +14,7 @@ export class EditorState {
     makeObservable(this);
 
     this.workspace.nodeStore.data.observe_(() => {
-      this.saveFile();
+      //this.saveFile();
       this.viewportState.sendEdit();
     });
   }

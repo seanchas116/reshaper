@@ -2,16 +2,25 @@
 
 import React, { useEffect } from "react";
 import type { Workspace } from "./models/workspace";
+import { RecursiveNodeData } from "./models/node";
 
 if (typeof window !== "undefined") {
-  window.__reshaperReceiveEdit = (workspace: Workspace) => {
+  window.__reshaperReceiveEdit = (
+    initialStructures: Map<string, RecursiveNodeData>,
+    newStructures: Map<string, RecursiveNodeData>,
+  ) => {
     for (const listener of editListeners) {
-      listener(workspace);
+      listener(initialStructures, newStructures);
     }
   };
 }
 
-const editListeners = new Set<(workspace: Workspace) => void>();
+const editListeners = new Set<
+  (
+    initialStructures: Map<string, RecursiveNodeData>,
+    newStructures: Map<string, RecursiveNodeData>,
+  ) => void
+>();
 
 export const EditReceiver: React.FC<{
   children: React.ReactNode;
@@ -19,8 +28,11 @@ export const EditReceiver: React.FC<{
   const [workspace, setWorkspace] = React.useState<Workspace | undefined>();
 
   useEffect(() => {
-    const onEdit = (workspace: Workspace) => {
-      console.log("received edit", workspace);
+    const onEdit = (
+      initialStructures: Map<string, RecursiveNodeData>,
+      newStructures: Map<string, RecursiveNodeData>,
+    ) => {
+      console.log("received edit", initialStructures, newStructures);
       setWorkspace(workspace);
     };
 

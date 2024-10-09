@@ -22,6 +22,7 @@ export type NodeData = {
 };
 
 export type RecursiveNodeData = NodeData & {
+  readonly id: string;
   readonly children: RecursiveNodeData[];
 };
 
@@ -185,6 +186,7 @@ export class Node extends BasicNode<NodeData> {
 
   toRecursiveData(): RecursiveNodeData {
     return {
+      id: this.id,
       ...this.data,
       children: this.children.map((child) => child.toRecursiveData()),
     };
