@@ -34,10 +34,13 @@ const NodeInspector = observer(() => {
               ? babelNode.openingElement.name.name
               : "Unknown"}
           </h2>
-          <div className="font-mono font-[10px] text-gray-400">
+          <div className="font-mono text-[10px] text-gray-400">
             {path.basename(editorState.filePath)}:{babelNode.loc?.start.line}:
             {babelNode.loc?.start.column}
           </div>
+        </div>
+        <div className="mb-2 font-mono text-[10px] text-gray-400">
+          {node.id}
         </div>
         <textarea
           className="block h-32 w-full rounded bg-gray-100 p-2 font-mono text-xs"
