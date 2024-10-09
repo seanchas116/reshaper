@@ -25,7 +25,7 @@ export class File {
   readonly nodeForElementIndex = new Map<number, Node>();
   readonly elementIndexForNode = new Map<Node, number>();
 
-  initialStructures = new Map<string, RecursiveNodeData>();
+  initialNodeDataMap = new Map<string, RecursiveNodeData>();
 
   constructor(
     workspace: Workspace,
@@ -200,7 +200,7 @@ export class File {
       toplevelStatementNodes.filter((node) => node.children.length > 0),
     );
 
-    this.initialStructures = this.getStructures();
+    this.initialNodeDataMap = this.getNodeDataMap();
 
     this.workspace.selectedNodeIDs.replace(
       [...selectedIDs].filter((id) => this.workspace.nodes.safeGet(id)),
@@ -243,30 +243,17 @@ export class File {
     return this.node.toModifiedBabelNode() as babel.File;
   }
 
-  getStructures(): Map<string, RecursiveNodeData> {
+  getNodeDataMap(): Map<string, RecursiveNodeData> {
     const ret = new Map<string, RecursiveNodeData>();
 
-    const visit = (
-      node: RecursiveNodeData,
-      parent: RecursiveNodeData | undefined,
-    ) => {
-      if (
-        // is a element/fragment and parent is not a element/fragment
-        (node.babelNode.type === "JSXElement" ||
-          node.babelNode.type === "JSXFragment") &&
-        !(
-          parent?.babelNode.type === "JSXElement" ||
-          parent?.babelNode.type === "JSXFragment"
-        )
-      ) {
-        ret.set(node.id, node);
-      }
+    const visit = (node: RecursiveNodeData) => {
+      ret.set(node.id, node);
 
       for (const child of node.children) {
-        visit(child, node);
+        visit(child);
       }
     };
-    visit(this.node.toRecursiveData(), undefined);
+    visit(this.node.toRecursiveData());
 
     return ret;
   }

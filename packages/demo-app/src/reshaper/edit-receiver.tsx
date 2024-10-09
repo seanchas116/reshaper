@@ -1,39 +1,43 @@
 "use client";
 
-import React, { useEffect } from "react";
-import type { Workspace } from "./models/workspace";
+import React, { useEffect, useState } from "react";
 import { RecursiveNodeData } from "./models/node";
 
 if (typeof window !== "undefined") {
   window.__reshaperReceiveEdit = (
-    initialStructures: Map<string, RecursiveNodeData>,
-    newStructures: Map<string, RecursiveNodeData>,
+    initialNodes: Map<string, RecursiveNodeData>,
+    newNodes: Map<string, RecursiveNodeData>,
   ) => {
     for (const listener of editListeners) {
-      listener(initialStructures, newStructures);
+      listener(initialNodes, newNodes);
     }
   };
 }
 
 const editListeners = new Set<
   (
-    initialStructures: Map<string, RecursiveNodeData>,
-    newStructures: Map<string, RecursiveNodeData>,
+    initialNodes: Map<string, RecursiveNodeData>,
+    newNodes: Map<string, RecursiveNodeData>,
   ) => void
 >();
 
 export const EditReceiver: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const [workspace, setWorkspace] = React.useState<Workspace | undefined>();
+  const [state, setState] = useState<
+    | {
+        initialNodes: Map<string, RecursiveNodeData>;
+        newNodes: Map<string, RecursiveNodeData>;
+      }
+    | undefined
+  >();
 
   useEffect(() => {
     const onEdit = (
-      initialStructures: Map<string, RecursiveNodeData>,
-      newStructures: Map<string, RecursiveNodeData>,
+      initialNodes: Map<string, RecursiveNodeData>,
+      newNodes: Map<string, RecursiveNodeData>,
     ) => {
-      console.log("received edit", initialStructures, newStructures);
-      setWorkspace(workspace);
+      setState({ initialNodes, newNodes });
     };
 
     editListeners.add(onEdit);
@@ -42,19 +46,72 @@ export const EditReceiver: React.FC<{
     };
   }, []);
 
-  if (!workspace) {
+  if (!state) {
     return <>{children}</>;
   }
 
+  const reactNodeIDMap = new Map<string, React.ReactNode>();
   for (const child of React.Children.toArray(children)) {
-    console.log(child);
     if (React.isValidElement(child)) {
-      const reshaperLoc = child.props["data-reshaper-loc"];
-      if (reshaperLoc) {
-        // TODO: find Node by reshaperLoc and apply changes
-      }
+      buildReactNodeIDMap(reactNodeIDMap, child, state.initialNodes);
     }
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          const reshaperLoc = child.props["data-reshaper-loc"];
+          if (reshaperLoc) {
+            return applyChanges(
+              child,
+              state.initialNodes,
+              state.newNodes,
+              reactNodeIDMap,
+            );
+          }
+        }
+        return child;
+      })}
+    </>
+  );
 };
+
+function buildReactNodeIDMap(
+  result: Map<string, React.ReactNode>,
+  node: React.ReactElement,
+  initialNodes: Map<string, RecursiveNodeData>,
+) {
+  const id = node.props["data-reshaper-loc"] as string | undefined;
+  if (id) {
+    result.set(id, node);
+  }
+  const reshaperNode = id ? initialNodes.get(id) : undefined;
+
+  for (const [i, child] of React.Children.toArray(
+    node.props.children,
+  ).entries()) {
+    if (React.isValidElement(child)) {
+      buildReactNodeIDMap(result, child, initialNodes);
+    } else {
+      const predictedID = reshaperNode?.children[i].id;
+      if (predictedID) {
+        result.set(predictedID, child);
+      }
+    }
+  }
+}
+
+function applyChanges(
+  reactNode: React.ReactElement,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  initialNodes: Map<string, RecursiveNodeData>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  newNodes: Map<string, RecursiveNodeData>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  reactNodeIDMap: Map<string, React.ReactNode>,
+) {
+  console.log(reactNodeIDMap);
+  // TODO
+  return reactNode;
+}

@@ -86,20 +86,20 @@ export class ViewportState {
   }
 
   sendEdit() {
-    const initialStructures = new Map<string, RecursiveNodeData>();
-    const newStructures = new Map<string, RecursiveNodeData>();
+    const initialNodes = new Map<string, RecursiveNodeData>();
+    const newNodes = new Map<string, RecursiveNodeData>();
     for (const file of this.editorState.workspace.files.values()) {
-      for (const [key, value] of file.initialStructures) {
-        initialStructures.set(key, value);
+      for (const [key, value] of file.initialNodeDataMap) {
+        initialNodes.set(key, value);
       }
-      for (const [key, value] of file.getStructures()) {
-        newStructures.set(key, value);
+      for (const [key, value] of file.getNodeDataMap()) {
+        newNodes.set(key, value);
       }
     }
 
     const receive = this.iframe?.contentWindow?.__reshaperReceiveEdit;
     if (receive) {
-      receive(initialStructures, newStructures);
+      receive(initialNodes, newNodes);
     }
   }
 }
