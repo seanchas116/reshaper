@@ -61,9 +61,10 @@ export const EditReceiver: React.FC<{
     <>
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-          const reshaperLoc = child.props["data-reshaper-loc"];
-          if (reshaperLoc) {
+          const id = child.props["data-reshaper-loc"];
+          if (id) {
             return applyChanges(
+              id,
               child,
               state.initialNodes,
               state.newNodes,
@@ -78,13 +79,13 @@ export const EditReceiver: React.FC<{
 };
 
 function buildReactNodeIDMap(
-  result: Map<string, React.ReactNode>,
+  idToReactNode: Map<string, React.ReactNode>,
   node: React.ReactElement,
   initialNodes: Map<string, RecursiveNodeData>,
 ) {
   const id = node.props["data-reshaper-loc"] as string | undefined;
   if (id) {
-    result.set(id, node);
+    idToReactNode.set(id, node);
   }
   const reshaperNode = id ? initialNodes.get(id) : undefined;
 
@@ -92,26 +93,53 @@ function buildReactNodeIDMap(
     node.props.children,
   ).entries()) {
     if (React.isValidElement(child)) {
-      buildReactNodeIDMap(result, child, initialNodes);
+      buildReactNodeIDMap(idToReactNode, child, initialNodes);
     } else {
       const predictedID = reshaperNode?.children[i].id;
       if (predictedID) {
-        result.set(predictedID, child);
+        idToReactNode.set(predictedID, child);
       }
     }
   }
 }
 
 function applyChanges(
+  id: string | undefined,
   reactNode: React.ReactElement,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  initialNodes: Map<string, RecursiveNodeData>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  newNodes: Map<string, RecursiveNodeData>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  reactNodeIDMap: Map<string, React.ReactNode>,
+  idToInitialNode: Map<string, RecursiveNodeData>,
+  idToNode: Map<string, RecursiveNodeData>,
+  idToReactNode: Map<string, React.ReactNode>,
 ) {
-  console.log(reactNodeIDMap);
-  // TODO
-  return reactNode;
+  if (!id) {
+    return reactNode;
+  }
+
+  const initialNode = idToInitialNode.get(id);
+  const node = idToNode.get(id);
+
+  if (!initialNode || !node) {
+    return reactNode;
+  }
+
+  const newReactChildren: React.ReactNode[] = [];
+
+  for (const child of node.children) {
+    const childReactNode = idToReactNode.get(child.id);
+
+    if (React.isValidElement(childReactNode)) {
+      newReactChildren.push(
+        applyChanges(
+          child.id,
+          childReactNode,
+          idToInitialNode,
+          idToNode,
+          idToReactNode,
+        ),
+      );
+    } else {
+      newReactChildren.push(childReactNode);
+    }
+  }
+
+  return React.cloneElement(reactNode, {}, newReactChildren);
 }
